@@ -9,6 +9,7 @@ import ActionPlans from './pages/ActionPlans'
 import EntryForm from './pages/EntryForm'
 import KpiDetails from './pages/KpiDetails'
 import Admin from './pages/Admin'
+import Import from './pages/Import'
 import NotFound from './pages/NotFound'
 import Login from './pages/Login'
 import { AuthProvider, useAuth } from '@/hooks/use-auth'
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/entry/:id?" element={<EntryForm />} />
             <Route path="/kpi-details" element={<KpiDetails />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/import" element={<Import />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

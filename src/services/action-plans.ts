@@ -8,6 +8,7 @@ export interface ActionPlan {
   responsible: string
   dueDate: string
   status: 'Pendente' | 'Em Andamento' | 'Concluído'
+  resultFile?: string
 }
 
 function mapRecord(record: any): ActionPlan {
@@ -19,6 +20,7 @@ function mapRecord(record: any): ActionPlan {
     responsible: record.responsible,
     dueDate: record.dueDate,
     status: record.status,
+    resultFile: record.resultFile || '',
   }
 }
 

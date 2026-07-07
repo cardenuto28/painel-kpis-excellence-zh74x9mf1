@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Edit, Trash2, Download } from 'lucide-react'
+import { Edit, Trash2, Download, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import useDataStore from '@/stores/use-data-store'
 import { useNavigate } from 'react-router-dom'
@@ -31,9 +31,14 @@ export default function History() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-display font-bold">Histórico de Meses</h2>
-        <Button variant="outline" className="gap-2">
-          <Download className="w-4 h-4" /> Exportar CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="secondary" className="gap-2" onClick={() => navigate('/import')}>
+            <Upload className="w-4 h-4" /> Importar Dados
+          </Button>
+          <Button variant="outline" className="gap-2">
+            <Download className="w-4 h-4" /> Exportar CSV
+          </Button>
+        </div>
       </div>
 
       <Card>

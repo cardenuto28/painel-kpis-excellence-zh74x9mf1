@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-07T15:49:51.765Z",
+  "generatedAt": "2026-07-07T16:24:51.755Z",
   "collections": [
     {
       "name": "users",
@@ -279,6 +279,12 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "resultFile",
+          "type": "file",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": ["CREATE INDEX idx_action_plans_monthId ON action_plans (monthId)"]

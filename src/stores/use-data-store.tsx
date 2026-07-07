@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState, useCallback, type React
 import pb from '@/lib/pocketbase/client'
 import { useRealtime } from '@/hooks/use-realtime'
 import { useAuth } from '@/hooks/use-auth'
+import { calculateKpiPoints } from '@/lib/kpi-calculator'
+import type { KpiDef } from '@/lib/kpi-definitions'
 
 interface DataStoreContextType {
   kpis: any[]
@@ -14,6 +16,8 @@ interface DataStoreContextType {
   deleteMonth: (id: string) => Promise<void>
   saveActionPlan: (data: any) => Promise<void>
   deleteActionPlan: (id: string) => Promise<void>
+  saveKpi: (data: KpiDef) => Promise<void>
+  deleteKpi: (kpiId: string) => Promise<void>
 }
 
 const DataStoreContext = createContext<DataStoreContextType | undefined>(undefined)
@@ -36,26 +40,12 @@ function parseJsonField(value: any): any {
   return value
 }
 
-function calculateKpiPoints(kpi: any, rawValue: any): number {
-  if (rawValue === undefined || rawValue === null || rawValue === '') return 0
-  const v = Number(rawValue)
-  if (isNaN(v)) return 0
-
-  if (kpi.type === 'boolean') return v > 0 ? kpi.maxPoints : 0
-  if (kpi.type === 'percentage') {
-    return Math.min(kpi.maxPoints, Math.max(0, Math.round((v / 100) * kpi.maxPoints)))
-  }
-  const target = kpi.maxPoints * 5
-  return Math.min(kpi.maxPoints, Math.max(0, Math.round((v / target) * kpi.maxPoints)))
-}
-
 export const DataProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth()
   const [kpis, setKpis] = useState<any[]>([])
   const [months, setMonths] = useState<any[]>([])
   const [actionPlans, setActionPlans] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-
   const role = user?.role || 'Visualizador'
 
   const refresh = useCallback(async () => {
@@ -74,7 +64,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
           .getFullList({ sort: '-created' })
           .catch(() => []),
       ])
-
       setKpis(
         kpiDefs.map((k: any) => ({
           id: k.kpiId,
@@ -87,7 +76,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
           _pbId: k.id,
         })),
       )
-
       setMonths(
         monthRecs.map((m: any) => ({
           ...m,
@@ -97,7 +85,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
           categoryScores: parseJsonField(m.categoryScores),
         })),
       )
-
       setActionPlans(plans)
     } catch (error) {
       console.error('Failed to load data:', error)
@@ -109,7 +96,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     refresh()
   }, [refresh])
-
   useRealtime('kpi_definitions', () => {
     refresh()
   })
@@ -123,26 +109,23 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const saveMonth = useCallback(
     async (data: any) => {
       const kpiDefs = await pb.collection('kpi_definitions').getFullList({ sort: 'sort_order' })
-      const mappedKpis = kpiDefs.map((k: any) => ({
+      const mappedKpis: KpiDef[] = kpiDefs.map((k: any) => ({
         id: k.kpiId,
         name: k.name,
         category: k.category,
         maxPoints: k.maxPoints,
         type: k.type,
+        tiers: parseJsonField(k.tiers),
       }))
-
       const rawValues = data.rawValues || {}
       const points: Record<string, number> = {}
       const categoryScores: Record<string, number> = {}
-
       for (const kpi of mappedKpis) {
         const pts = calculateKpiPoints(kpi, rawValues[kpi.id])
         points[kpi.id] = pts
         categoryScores[kpi.category] = (categoryScores[kpi.category] || 0) + pts
       }
-
       const totalScore = Object.values(points).reduce((a: number, b: number) => a + b, 0)
-
       const payload = {
         mes: data.mes,
         ano: data.ano,
@@ -155,12 +138,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         categoryScores: JSON.stringify(categoryScores),
         criadoPor: user?.email || '',
       }
-
-      if (data.id) {
-        await pb.collection('month_records').update(data.id, payload)
-      } else {
-        await pb.collection('month_records').create(payload)
-      }
+      if (data.id) await pb.collection('month_records').update(data.id, payload)
+      else await pb.collection('month_records').create(payload)
       await refresh()
     },
     [user, refresh],
@@ -176,7 +155,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
   const saveActionPlan = useCallback(
     async (data: any) => {
-      const payload = {
+      const fields: Record<string, any> = {
         monthId: data.monthId,
         kpiId: data.kpiId,
         description: data.description,
@@ -184,11 +163,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         dueDate: data.dueDate,
         status: data.status || 'Pendente',
       }
-
-      if (data.id) {
-        await pb.collection('action_plans').update(data.id, payload)
+      if (data.resultFile instanceof File) {
+        const formData = new FormData()
+        Object.keys(fields).forEach((key) => formData.append(key, String(fields[key])))
+        formData.append('resultFile', data.resultFile)
+        if (data.id) await pb.collection('action_plans').update(data.id, formData)
+        else await pb.collection('action_plans').create(formData)
       } else {
-        await pb.collection('action_plans').create(payload)
+        if (data.id) await pb.collection('action_plans').update(data.id, fields)
+        else await pb.collection('action_plans').create(fields)
       }
       await refresh()
     },
@@ -198,6 +181,43 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const deleteActionPlan = useCallback(
     async (id: string) => {
       await pb.collection('action_plans').delete(id)
+      await refresh()
+    },
+    [refresh],
+  )
+
+  const saveKpi = useCallback(
+    async (data: KpiDef) => {
+      const payload = {
+        kpiId: data.id,
+        name: data.name,
+        category: data.category,
+        maxPoints: data.maxPoints,
+        type: data.type,
+        tiers: JSON.stringify(data.tiers || []),
+        sort_order: (data as any).sort_order || 0,
+      }
+      try {
+        const existing = await pb
+          .collection('kpi_definitions')
+          .getFirstListItem(`kpiId="${data.id}"`)
+        await pb.collection('kpi_definitions').update(existing.id, payload)
+      } catch {
+        await pb.collection('kpi_definitions').create(payload)
+      }
+      await refresh()
+    },
+    [refresh],
+  )
+
+  const deleteKpi = useCallback(
+    async (kpiId: string) => {
+      try {
+        const existing = await pb.collection('kpi_definitions').getFirstListItem(`kpiId="${kpiId}"`)
+        await pb.collection('kpi_definitions').delete(existing.id)
+      } catch {
+        /* intentionally ignored */
+      }
       await refresh()
     },
     [refresh],
@@ -216,6 +236,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         deleteMonth,
         saveActionPlan,
         deleteActionPlan,
+        saveKpi,
+        deleteKpi,
       }}
     >
       {children}

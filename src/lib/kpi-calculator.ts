@@ -2,9 +2,10 @@ import { KpiDef, KPI_CATEGORIES } from '@/lib/kpi-definitions'
 
 export function calculateKpiPoints(kpi: KpiDef, val: any): number {
   if (kpi.type === 'treinamentos') {
+    if (typeof val === 'number') return Math.max(0, Math.min(val, kpi.maxPoints))
     const v = val || { vendas: 0, pos: 0, tecnico: 0 }
     const total = Number(v.vendas) + Number(v.pos) + Number(v.tecnico)
-    return Math.max(0, Math.min(total, 5))
+    return Math.max(0, Math.min(total, kpi.maxPoints))
   }
 
   if (kpi.type === 'boolean') {
@@ -12,7 +13,10 @@ export function calculateKpiPoints(kpi: KpiDef, val: any): number {
   }
 
   if (kpi.type === 'voc') {
-    const v = val || { nps: 0, failedSubIndicators: 0 }
+    const v =
+      typeof val === 'number'
+        ? { nps: val, failedSubIndicators: 0 }
+        : val || { nps: 0, failedSubIndicators: 0 }
     let basePoints = 0
     if (kpi.tiers && kpi.tiers.length > 0) {
       for (const tier of kpi.tiers) {

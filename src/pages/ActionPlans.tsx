@@ -23,7 +23,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import useDataStore from '@/stores/use-data-store'
 import { MONTH_NAMES } from '@/lib/kpi-definitions'
-import { Target, Edit, Trash2 } from 'lucide-react'
+import { Target, Edit, Trash2, FileText } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
@@ -57,6 +57,7 @@ export default function ActionPlans() {
   }, [currentMonth, actionPlans, kpis])
 
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null)
+  const [resultFile, setResultFile] = useState<File | null>(null)
   const { register, handleSubmit, reset, setValue, watch } = useForm()
   const statusWatch = watch('status')
 
@@ -70,9 +71,11 @@ export default function ActionPlans() {
         responsible: data.responsible,
         dueDate: data.dueDate,
         status: data.status || 'Pendente',
+        resultFile,
       })
       setIsDialogOpen(false)
       setEditingPlanId(null)
+      setResultFile(null)
       reset()
     } catch {
       toast.error('Erro ao salvar plano de ação.')
@@ -82,6 +85,7 @@ export default function ActionPlans() {
   const handleOpenDialog = (kpiId: string) => {
     setEditingPlanId(null)
     setSelectedGapId(kpiId)
+    setResultFile(null)
     reset()
     setValue('status', 'Pendente')
     setIsDialogOpen(true)
@@ -232,6 +236,16 @@ export default function ActionPlans() {
                           <div className="text-xs text-muted-foreground">
                             {m?.mes} {m?.ano}
                           </div>
+                          {p.resultFile && (
+                            <a
+                              href={`${import.meta.env.VITE_POCKETBASE_URL}/api/files/action_plans/${p.id}/${p.resultFile}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1"
+                            >
+                              <FileText className="w-3 h-3" /> Ver comprovante
+                            </a>
+                          )}
                         </TableCell>
                         <TableCell className="text-sm">{p.responsible}</TableCell>
                         <TableCell className="text-sm">
@@ -343,6 +357,15 @@ export default function ActionPlans() {
                 </Select>
               </div>
             )}
+            <div className="space-y-2">
+              <Label>Comprovante (PDF - até 5MB)</Label>
+              <Input
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => setResultFile(e.target.files?.[0] || null)}
+              />
+              {resultFile && <p className="text-xs text-muted-foreground">{resultFile.name}</p>}
+            </div>
             <div className="pt-4 flex justify-end gap-3">
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancelar
