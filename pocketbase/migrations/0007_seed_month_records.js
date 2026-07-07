@@ -1,196 +1,275 @@
 migrate(
   (app) => {
     const col = app.findCollectionByNameOrId('month_records')
-    const apCol = app.findCollectionByNameOrId('action_plans')
 
-    function addMonth(data) {
+    const months = [
+      {
+        mes: 'Janeiro',
+        ano: 2026,
+        ranking: 3,
+        topDealerTotal: 118.5,
+        rawValues: {
+          vendas_volume: 45,
+          vendas_mix: 82,
+          vendas_leads: 28,
+          vendas_usados: 22,
+          suporte_csi: 91,
+          suporte_resposta: 85,
+          suporte_retencao: 78,
+          suporte_reclamacoes: 95,
+          rede_treinamento: 12,
+          rede_certificacoes: 8,
+          rede_investimento: 70,
+          rede_digital: 65,
+          crm_cadastro: 88,
+          crm_followup: 76,
+          crm_campanhas: 5,
+          crm_retencao: 72,
+          fin_financiamento: 68,
+          fin_seguros: 55,
+          fin_produtos: 60,
+          fin_prazo: 35,
+        },
+        topDealerRawValues: {
+          vendas_volume: 52,
+          vendas_mix: 95,
+          vendas_leads: 35,
+          vendas_usados: 28,
+          suporte_csi: 98,
+          suporte_resposta: 95,
+          suporte_retencao: 90,
+          suporte_reclamacoes: 100,
+          rede_treinamento: 15,
+          rede_certificacoes: 12,
+          rede_investimento: 85,
+          rede_digital: 80,
+          crm_cadastro: 95,
+          crm_followup: 90,
+          crm_campanhas: 8,
+          crm_retencao: 85,
+          fin_financiamento: 80,
+          fin_seguros: 72,
+          fin_produtos: 75,
+          fin_prazo: 28,
+        },
+        points: {
+          vendas_volume: 10,
+          vendas_mix: 7,
+          vendas_leads: 6,
+          vendas_usados: 5,
+          suporte_csi: 9,
+          suporte_resposta: 5,
+          suporte_retencao: 7,
+          suporte_reclamacoes: 6,
+          rede_treinamento: 7,
+          rede_certificacoes: 5,
+          rede_investimento: 5,
+          rede_digital: 5,
+          crm_cadastro: 5,
+          crm_followup: 7,
+          crm_campanhas: 5,
+          crm_retencao: 7,
+          fin_financiamento: 6,
+          fin_seguros: 5,
+          fin_produtos: 5,
+          fin_prazo: 3,
+        },
+        totalScore: 109,
+        categoryScores: {
+          Vendas: 28,
+          'Suporte ao Cliente': 27,
+          'Desenvolvimento de Rede': 22,
+          CRM: 24,
+          'Servicos Financeiros': 19,
+        },
+        criadoPor: 'ricardo@grupoeuromotors.com.br',
+      },
+      {
+        mes: 'Fevereiro',
+        ano: 2026,
+        ranking: 2,
+        topDealerTotal: 120.0,
+        rawValues: {
+          vendas_volume: 48,
+          vendas_mix: 88,
+          vendas_leads: 32,
+          vendas_usados: 25,
+          suporte_csi: 94,
+          suporte_resposta: 90,
+          suporte_retencao: 82,
+          suporte_reclamacoes: 98,
+          rede_treinamento: 14,
+          rede_certificacoes: 10,
+          rede_investimento: 75,
+          rede_digital: 72,
+          crm_cadastro: 92,
+          crm_followup: 82,
+          crm_campanhas: 6,
+          crm_retencao: 78,
+          fin_financiamento: 72,
+          fin_seguros: 62,
+          fin_produtos: 68,
+          fin_prazo: 30,
+        },
+        topDealerRawValues: {
+          vendas_volume: 52,
+          vendas_mix: 95,
+          vendas_leads: 35,
+          vendas_usados: 28,
+          suporte_csi: 98,
+          suporte_resposta: 95,
+          suporte_retencao: 90,
+          suporte_reclamacoes: 100,
+          rede_treinamento: 15,
+          rede_certificacoes: 12,
+          rede_investimento: 85,
+          rede_digital: 80,
+          crm_cadastro: 95,
+          crm_followup: 90,
+          crm_campanhas: 8,
+          crm_retencao: 85,
+          fin_financiamento: 80,
+          fin_seguros: 72,
+          fin_produtos: 75,
+          fin_prazo: 28,
+        },
+        points: {
+          vendas_volume: 10,
+          vendas_mix: 8,
+          vendas_leads: 7,
+          vendas_usados: 5,
+          suporte_csi: 10,
+          suporte_resposta: 6,
+          suporte_retencao: 7,
+          suporte_reclamacoes: 6,
+          rede_treinamento: 8,
+          rede_certificacoes: 6,
+          rede_investimento: 5,
+          rede_digital: 5,
+          crm_cadastro: 6,
+          crm_followup: 7,
+          crm_campanhas: 5,
+          crm_retencao: 7,
+          fin_financiamento: 7,
+          fin_seguros: 5,
+          fin_produtos: 6,
+          fin_prazo: 3,
+        },
+        totalScore: 113,
+        categoryScores: {
+          Vendas: 30,
+          'Suporte ao Cliente': 29,
+          'Desenvolvimento de Rede': 24,
+          CRM: 25,
+          'Servicos Financeiros': 21,
+        },
+        criadoPor: 'ricardo@grupoeuromotors.com.br',
+      },
+      {
+        mes: 'Marco',
+        ano: 2026,
+        ranking: 4,
+        topDealerTotal: 122.0,
+        rawValues: {
+          vendas_volume: 42,
+          vendas_mix: 78,
+          vendas_leads: 25,
+          vendas_usados: 20,
+          suporte_csi: 88,
+          suporte_resposta: 80,
+          suporte_retencao: 75,
+          suporte_reclamacoes: 92,
+          rede_treinamento: 10,
+          rede_certificacoes: 7,
+          rede_investimento: 65,
+          rede_digital: 60,
+          crm_cadastro: 85,
+          crm_followup: 70,
+          crm_campanhas: 4,
+          crm_retencao: 68,
+          fin_financiamento: 65,
+          fin_seguros: 50,
+          fin_produtos: 55,
+          fin_prazo: 38,
+        },
+        topDealerRawValues: {
+          vendas_volume: 55,
+          vendas_mix: 96,
+          vendas_leads: 38,
+          vendas_usados: 30,
+          suporte_csi: 99,
+          suporte_resposta: 96,
+          suporte_retencao: 92,
+          suporte_reclamacoes: 100,
+          rede_treinamento: 16,
+          rede_certificacoes: 13,
+          rede_investimento: 88,
+          rede_digital: 82,
+          crm_cadastro: 96,
+          crm_followup: 92,
+          crm_campanhas: 9,
+          crm_retencao: 88,
+          fin_financiamento: 82,
+          fin_seguros: 75,
+          fin_produtos: 78,
+          fin_prazo: 25,
+        },
+        points: {
+          vendas_volume: 9,
+          vendas_mix: 6,
+          vendas_leads: 5,
+          vendas_usados: 4,
+          suporte_csi: 9,
+          suporte_resposta: 5,
+          suporte_retencao: 6,
+          suporte_reclamacoes: 6,
+          rede_treinamento: 6,
+          rede_certificacoes: 4,
+          rede_investimento: 4,
+          rede_digital: 4,
+          crm_cadastro: 5,
+          crm_followup: 6,
+          crm_campanhas: 4,
+          crm_retencao: 6,
+          fin_financiamento: 6,
+          fin_seguros: 4,
+          fin_produtos: 5,
+          fin_prazo: 2,
+        },
+        totalScore: 96,
+        categoryScores: {
+          Vendas: 24,
+          'Suporte ao Cliente': 26,
+          'Desenvolvimento de Rede': 18,
+          CRM: 21,
+          'Servicos Financeiros': 17,
+        },
+        criadoPor: 'ricardo@grupoeuromotors.com.br',
+      },
+    ]
+
+    for (const m of months) {
       try {
-        app.findFirstRecordByData('month_records', 'mes', data.mes)
-        return app.findFirstRecordByData('month_records', 'mes', data.mes)
-      } catch (_) {}
-      var record = new Record(col)
-      record.set('mes', data.mes)
-      record.set('ano', data.ano)
-      record.set('ranking', data.ranking)
-      record.set('topDealerTotal', data.topDealerTotal)
-      record.set('rawValues', JSON.stringify(data.rawValues))
-      record.set('topDealerRawValues', JSON.stringify(data.topDealerRawValues))
-      record.set('totalScore', 0)
-      record.set('criadoPor', 'ricardo@grupoeuromotors.com.br')
-      app.save(record)
-      return record
-    }
-
-    var rawMar = {
-      vendasRetail: 105,
-      bev: 100,
-      gkl: 100,
-      mMpa: 105,
-      bps: 90,
-      vocVendas: { nps: 98, failedSubIndicators: 0 },
-      pecas: 90,
-      videos: 115,
-      clientesConectados: 110,
-      serviceInclusive: 120,
-      teleservice: 105,
-      ticketMedio: 90,
-      vocPos: { nps: 90, failedSubIndicators: 0 },
-      treinamentos: { vendas: 2, pos: 2, tecnico: 1 },
-      retailStandards: 98,
-      ferramentasDigitais: true,
-      propostaComercial: 55.1,
-      sfPenetration: 90,
-    }
-    var tdMar = {
-      vendasRetail: 126,
-      bev: 200,
-      gkl: 200,
-      mMpa: 167,
-      bps: 185,
-      vocVendas: { nps: 100, failedSubIndicators: 0 },
-      pecas: 197,
-      videos: 263,
-      clientesConectados: 268,
-      serviceInclusive: 303,
-      teleservice: 175,
-      ticketMedio: 258,
-      vocPos: { nps: 100, failedSubIndicators: 0 },
-      treinamentos: { vendas: 5, pos: 5, tecnico: 5 },
-      retailStandards: 100,
-      ferramentasDigitais: false,
-      propostaComercial: 100,
-      sfPenetration: 193,
-    }
-    var rawApr = {
-      vendasRetail: 95,
-      bev: 100,
-      gkl: 100,
-      mMpa: 105,
-      bps: 105,
-      vocVendas: { nps: 90, failedSubIndicators: 1 },
-      pecas: 98,
-      videos: 115,
-      clientesConectados: 110,
-      serviceInclusive: 96,
-      teleservice: 105,
-      ticketMedio: 90,
-      vocPos: { nps: 90, failedSubIndicators: 0 },
-      treinamentos: { vendas: 2, pos: 2, tecnico: 1 },
-      retailStandards: 98,
-      ferramentasDigitais: true,
-      propostaComercial: 55.1,
-      sfPenetration: 90,
-    }
-    var tdApr = {
-      vendasRetail: 124,
-      bev: 200,
-      gkl: 200,
-      mMpa: 200,
-      bps: 225,
-      vocVendas: { nps: 100, failedSubIndicators: 0 },
-      pecas: 155,
-      videos: 263,
-      clientesConectados: 268,
-      serviceInclusive: 337,
-      teleservice: 175,
-      ticketMedio: 258,
-      vocPos: { nps: 100, failedSubIndicators: 0 },
-      treinamentos: { vendas: 5, pos: 5, tecnico: 5 },
-      retailStandards: 100,
-      ferramentasDigitais: false,
-      propostaComercial: 100,
-      sfPenetration: 193,
-    }
-    var rawMay = {
-      vendasRetail: 98,
-      bev: 105,
-      gkl: 100,
-      mMpa: 105,
-      bps: 100,
-      vocVendas: { nps: 98, failedSubIndicators: 0 },
-      pecas: 90,
-      videos: 115,
-      clientesConectados: 110,
-      serviceInclusive: 120,
-      teleservice: 105,
-      ticketMedio: 90,
-      vocPos: { nps: 85, failedSubIndicators: 0 },
-      treinamentos: { vendas: 2, pos: 2, tecnico: 1 },
-      retailStandards: 98,
-      ferramentasDigitais: true,
-      propostaComercial: 55.1,
-      sfPenetration: 102,
-    }
-    var tdMay = {
-      vendasRetail: 122,
-      bev: 200,
-      gkl: 200,
-      mMpa: 200,
-      bps: 185,
-      vocVendas: { nps: 100, failedSubIndicators: 0 },
-      pecas: 153,
-      videos: 263,
-      clientesConectados: 268,
-      serviceInclusive: 292,
-      teleservice: 175,
-      ticketMedio: 258,
-      vocPos: { nps: 100, failedSubIndicators: 0 },
-      treinamentos: { vendas: 5, pos: 5, tecnico: 5 },
-      retailStandards: 100,
-      ferramentasDigitais: false,
-      propostaComercial: 100,
-      sfPenetration: 221,
-    }
-
-    var marRecord = addMonth({
-      mes: 'Março',
-      ano: 2026,
-      ranking: 4,
-      topDealerTotal: 88,
-      rawValues: rawMar,
-      topDealerRawValues: tdMar,
-    })
-    addMonth({
-      mes: 'Abril',
-      ano: 2026,
-      ranking: 6,
-      topDealerTotal: 85,
-      rawValues: rawApr,
-      topDealerRawValues: tdApr,
-    })
-    var mayRecord = addMonth({
-      mes: 'Maio',
-      ano: 2026,
-      ranking: 5,
-      topDealerTotal: 84,
-      rawValues: rawMay,
-      topDealerRawValues: tdMay,
-    })
-
-    try {
-      app.findFirstRecordByData(
-        'action_plans',
-        'description',
-        'Realizar campanha de vendas de lifestyle na recepção.',
-      )
-    } catch (_) {
-      var plan = new Record(apCol)
-      plan.set('monthId', mayRecord.id)
-      plan.set('kpiId', 'pecas')
-      plan.set('description', 'Realizar campanha de vendas de lifestyle na recepção.')
-      plan.set('responsible', 'João Silva')
-      plan.set('dueDate', '2026-06-15 00:00:00.000Z')
-      plan.set('status', 'Em Andamento')
-      app.save(plan)
+        app.findFirstRecordByData('month_records', 'mes', m.mes)
+      } catch (_) {
+        const record = new Record(col)
+        record.set('mes', m.mes)
+        record.set('ano', m.ano)
+        record.set('ranking', m.ranking)
+        record.set('topDealerTotal', m.topDealerTotal)
+        record.set('rawValues', JSON.stringify(m.rawValues))
+        record.set('topDealerRawValues', JSON.stringify(m.topDealerRawValues))
+        record.set('points', JSON.stringify(m.points))
+        record.set('totalScore', m.totalScore)
+        record.set('categoryScores', JSON.stringify(m.categoryScores))
+        record.set('criadoPor', m.criadoPor)
+        app.save(record)
+      }
     }
   },
   (app) => {
     try {
       const col = app.findCollectionByNameOrId('month_records')
-      app.truncateCollection(col)
-    } catch (_) {}
-    try {
-      const col = app.findCollectionByNameOrId('action_plans')
       app.truncateCollection(col)
     } catch (_) {}
   },
