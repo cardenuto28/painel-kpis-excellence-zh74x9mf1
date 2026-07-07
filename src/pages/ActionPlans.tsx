@@ -26,7 +26,7 @@ import { MONTH_NAMES } from '@/lib/kpi-definitions'
 import { Target, Edit, Trash2, Download, ExternalLink } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import { parseDate, toDatePickerValue, formatDateBR } from '@/lib/utils'
+import { parseDate, formatDateBR } from '@/lib/utils'
 import { getFileUrl, getActionPlans } from '@/services/action-plans'
 import { useRealtime } from '@/hooks/use-realtime'
 
@@ -121,7 +121,7 @@ export default function ActionPlans() {
     setSelectedGapId(plan.kpiId)
     setValue('description', plan.description)
     setValue('responsible', plan.responsible)
-    setValue('dueDate', plan.dueDate ? toDatePickerValue(plan.dueDate) : '')
+    setValue('dueDate', plan.dueDate || '')
     setValue('status', plan.status)
     setResultFile(null)
     setIsDialogOpen(true)
@@ -274,7 +274,7 @@ export default function ActionPlans() {
                                 <ExternalLink className="w-3 h-3" /> Ver comprovante
                               </a>
                               <a
-                                href={`${getFileUrl(p.id, p.resultFile)}?download=1`}
+                                href={`${getFileUrl(p.id, p.resultFile)}&download=1`}
                                 download
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -413,7 +413,7 @@ export default function ActionPlans() {
                   </Button>
                   <Button type="button" variant="outline" size="sm" className="flex-1" asChild>
                     <a
-                      href={`${getFileUrl(editingPlan.id, editingPlan.resultFile)}?download=1`}
+                      href={`${getFileUrl(editingPlan.id, editingPlan.resultFile)}&download=1`}
                       download
                       target="_blank"
                       rel="noopener noreferrer"

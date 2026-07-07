@@ -9,6 +9,7 @@ import ActionPlans from './pages/ActionPlans'
 import EntryForm from './pages/EntryForm'
 import KpiDetails from './pages/KpiDetails'
 import Admin from './pages/Admin'
+import Users from './pages/Users'
 import Import from './pages/Import'
 import NotFound from './pages/NotFound'
 import Login from './pages/Login'
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/entry/:id?" element={<EntryForm />} />
             <Route path="/kpi-details" element={<KpiDetails />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/users" element={<Users />} />
             <Route path="/import" element={<Import />} />
           </Route>
           <Route path="*" element={<NotFound />} />

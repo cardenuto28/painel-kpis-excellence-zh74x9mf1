@@ -1,5 +1,13 @@
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, History, Target, PlusCircle, Settings, ListTree } from 'lucide-react'
+import {
+  LayoutDashboard,
+  History,
+  Target,
+  PlusCircle,
+  Settings,
+  ListTree,
+  UserCog,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import useDataStore from '@/stores/use-data-store'
 import logoUrl from '@/assets/bmweuromotorsjundiaibranco1-af726.png'
@@ -62,18 +70,30 @@ export function Sidebar() {
         )}
 
         {role === 'Admin' && (
-          <div className="pt-2">
+          <div className="pt-2 space-y-1">
             <Link
               to="/admin"
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
-                pathname.startsWith('/admin')
+                pathname === '/admin'
                   ? 'bg-muted text-foreground font-medium'
                   : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
               )}
             >
               <Settings className="w-5 h-5" />
               <span>Admin KPIs</span>
+            </Link>
+            <Link
+              to="/admin/users"
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
+                pathname === '/admin/users'
+                  ? 'bg-muted text-foreground font-medium'
+                  : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+              )}
+            >
+              <UserCog className="w-5 h-5" />
+              <span>Usuários</span>
             </Link>
           </div>
         )}

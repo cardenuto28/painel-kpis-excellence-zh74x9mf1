@@ -12,7 +12,8 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const { signIn, isAuthenticated } = useAuth()
+  const [isSignUp, setIsSignUp] = useState(false)
+  const { signIn, signUp, isAuthenticated } = useAuth()
   const navigate = useNavigate()
 
   if (isAuthenticated) {
@@ -22,9 +23,13 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    const { error } = await signIn(email, password)
+    const { error } = isSignUp ? await signUp(email, password) : await signIn(email, password)
     if (error) {
-      toast.error('Credenciais inválidas. Verifique seu email e senha.')
+      toast.error(
+        isSignUp
+          ? 'Erro ao cadastrar. Tente novamente.'
+          : 'Credenciais inválidas. Verifique seu email e senha.',
+      )
       setLoading(false)
     } else {
       navigate('/')
@@ -45,7 +50,9 @@ export default function Login() {
               Excellence Club
             </div>
           </div>
-          <CardTitle className="text-2xl font-display text-center">Acesso ao Painel</CardTitle>
+          <CardTitle className="text-2xl font-display text-center">
+            {isSignUp ? 'Criar Conta' : 'Acesso ao Painel'}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-5">
@@ -70,8 +77,21 @@ export default function Login() {
               />
             </div>
             <Button type="submit" className="w-full h-11 text-base" disabled={loading}>
-              {loading ? 'Entrando...' : 'Entrar'}
+              {loading
+                ? isSignUp
+                  ? 'Cadastrando...'
+                  : 'Entrando...'
+                : isSignUp
+                  ? 'Cadastrar'
+                  : 'Entrar'}
             </Button>
+            <button
+              type="button"
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              {isSignUp ? 'Já tem conta? Entrar' : 'Não tem conta? Cadastrar'}
+            </button>
           </form>
         </CardContent>
       </Card>
