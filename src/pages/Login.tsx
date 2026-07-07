@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import useDataStore from '@/stores/use-data-store'
-import logoUrl from '@/assets/bmw-euro-motors-jundiai-branco-04826.pdf'
+import logoUrl from '@/assets/bmweuromotorsjundiaibranco1-af726.png'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -30,12 +30,12 @@ export default function Login() {
       <Card className="w-full max-w-md border-border/50 bg-card/40 backdrop-blur-sm shadow-elevation">
         <CardHeader className="space-y-6 items-center">
           <div className="w-full h-24 bg-black rounded-lg p-4 flex flex-col items-center justify-center">
-            <embed
-              src={`${logoUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-              type="application/pdf"
-              className="w-full h-12 pointer-events-none"
+            <img
+              src={logoUrl}
+              alt="Euro Motors"
+              className="w-full h-auto object-contain max-h-12 pointer-events-none"
             />
-            <div className="text-[10px] text-white uppercase tracking-[0.2em] mt-2 font-display">
+            <div className="text-[10px] text-white uppercase tracking-[0.2em] mt-2 font-display font-medium">
               Excellence Club
             </div>
           </div>

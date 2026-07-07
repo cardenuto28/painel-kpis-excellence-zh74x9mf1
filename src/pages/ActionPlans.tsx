@@ -56,7 +56,8 @@ export default function ActionPlans() {
   }, [currentMonth, actionPlans, kpis])
 
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null)
-  const { register, handleSubmit, reset, setValue } = useForm()
+  const { register, handleSubmit, reset, setValue, watch } = useForm()
+  const statusWatch = watch('status')
 
   const onSubmit = (data: any) => {
     saveActionPlan({
@@ -66,9 +67,7 @@ export default function ActionPlans() {
       description: data.description,
       responsible: data.responsible,
       dueDate: data.dueDate,
-      status: editingPlanId
-        ? actionPlans.find((p) => p.id === editingPlanId)?.status || 'Pendente'
-        : 'Pendente',
+      status: data.status || 'Pendente',
     })
     setIsDialogOpen(false)
     setEditingPlanId(null)
@@ -79,6 +78,7 @@ export default function ActionPlans() {
     setEditingPlanId(null)
     setSelectedGapId(kpiId)
     reset()
+    setValue('status', 'Pendente')
     setIsDialogOpen(true)
   }
 
@@ -89,6 +89,7 @@ export default function ActionPlans() {
     setValue('description', plan.description)
     setValue('responsible', plan.responsible)
     setValue('dueDate', plan.dueDate)
+    setValue('status', plan.status)
     setIsDialogOpen(true)
   }
 
@@ -194,13 +195,14 @@ export default function ActionPlans() {
                 <TableRow>
                   <TableHead>KPI / Mês</TableHead>
                   <TableHead>Responsável</TableHead>
+                  <TableHead>Prazo</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {actionPlans.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center py-8">
+                    <TableCell colSpan={4} className="text-center py-8">
                       Nenhum plano cadastrado.
                     </TableCell>
                   </TableRow>
@@ -208,6 +210,16 @@ export default function ActionPlans() {
                   actionPlans.map((p) => {
                     const m = months.find((x) => x.id === p.monthId)
                     const k = kpis.find((x) => x.id === p.kpiId)
+
+                    const dueDate = new Date(p.dueDate + 'T00:00:00')
+                    const today = new Date()
+                    today.setHours(0, 0, 0, 0)
+                    const isOverdue = p.status !== 'Concluído' && dueDate < today
+                    const isUpcoming =
+                      p.status !== 'Concluído' &&
+                      !isOverdue &&
+                      dueDate.getTime() - today.getTime() <= 7 * 24 * 60 * 60 * 1000
+
                     return (
                       <TableRow key={p.id}>
                         <TableCell>
@@ -217,39 +229,59 @@ export default function ActionPlans() {
                           </div>
                         </TableCell>
                         <TableCell className="text-sm">{p.responsible}</TableCell>
-                        <TableCell className="flex items-center justify-between">
-                          <Badge
-                            variant="outline"
-                            className={
-                              p.status === 'Concluído'
-                                ? 'border-green-500 text-green-500'
-                                : p.status === 'Em Andamento'
-                                  ? 'border-primary text-primary'
-                                  : ''
-                            }
-                          >
-                            {p.status}
-                          </Badge>
-                          {(role === 'Editor' || role === 'Admin') && (
-                            <div className="flex gap-1 ml-4">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7"
-                                onClick={() => handleEditPlan(p)}
+                        <TableCell className="text-sm">
+                          <div className="flex flex-col gap-1 items-start">
+                            <span>{dueDate.toLocaleDateString('pt-BR')}</span>
+                            {isOverdue && (
+                              <Badge variant="destructive" className="text-[10px] h-4 px-1.5">
+                                Atrasado
+                              </Badge>
+                            )}
+                            {isUpcoming && (
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] h-4 px-1.5 border-orange-500 text-orange-500 bg-orange-500/10"
                               >
-                                <Edit className="w-3.5 h-3.5 text-muted-foreground" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7"
-                                onClick={() => deleteActionPlan(p.id)}
-                              >
-                                <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                              </Button>
-                            </div>
-                          )}
+                                Próximo
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-between">
+                            <Badge
+                              variant="outline"
+                              className={
+                                p.status === 'Concluído'
+                                  ? 'border-green-500 text-green-500'
+                                  : p.status === 'Em Andamento'
+                                    ? 'border-primary text-primary'
+                                    : ''
+                              }
+                            >
+                              {p.status}
+                            </Badge>
+                            {(role === 'Editor' || role === 'Admin') && (
+                              <div className="flex gap-1 ml-2">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={() => handleEditPlan(p)}
+                                >
+                                  <Edit className="w-3.5 h-3.5 text-muted-foreground" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={() => deleteActionPlan(p.id)}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     )
@@ -284,6 +316,24 @@ export default function ActionPlans() {
                 <Input type="date" {...register('dueDate', { required: true })} className="flex" />
               </div>
             </div>
+            {editingPlanId && (
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select
+                  value={statusWatch || 'Pendente'}
+                  onValueChange={(val) => setValue('status', val)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pendente">Pendente</SelectItem>
+                    <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+                    <SelectItem value="Concluído">Concluído</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="pt-4 flex justify-end gap-3">
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancelar

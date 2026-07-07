@@ -16,10 +16,10 @@ import {
 import useDataStore from '@/stores/use-data-store'
 import { MONTH_NAMES } from '@/lib/kpi-definitions'
 import { Gauge } from '@/components/dashboard/Gauge'
-import { AlertCircle, Target, TrendingDown, TrendingUp } from 'lucide-react'
+import { AlertCircle, Target, TrendingDown, TrendingUp, Clock } from 'lucide-react'
 
 export default function Index() {
-  const { months, kpis } = useDataStore()
+  const { months, kpis, actionPlans } = useDataStore()
 
   const sortedMonths = useMemo(() => {
     return [...months].sort((a, b) => {
@@ -68,8 +68,16 @@ export default function Index() {
       return currentZero && wasScoring
     })
 
-    return { critical, attention }
-  }, [currentMonth, sortedMonths, kpis])
+    const overduePlans = actionPlans.filter((p) => {
+      if (p.status === 'Concluído') return false
+      const dueDate = new Date(p.dueDate + 'T00:00:00')
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      return dueDate < today
+    })
+
+    return { critical, attention, overduePlans }
+  }, [currentMonth, sortedMonths, kpis, actionPlans])
 
   if (months.length === 0) {
     return (
@@ -294,7 +302,7 @@ export default function Index() {
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card className="border-destructive/30 bg-destructive/5 relative overflow-hidden">
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-destructive/50"></div>
               <CardHeader className="pb-3">
@@ -357,6 +365,46 @@ export default function Index() {
                   <p className="text-sm text-muted-foreground">
                     Nenhum KPI perdeu todos os pontos neste mês.
                   </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="border-orange-500/30 bg-orange-500/5 relative overflow-hidden">
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500/50"></div>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-display flex items-center gap-2 text-orange-500">
+                  <Clock className="w-5 h-5" />
+                  Planos Atrasados
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {insights.overduePlans.length > 0 ? (
+                  <ul className="space-y-3">
+                    {insights.overduePlans.map((plan) => {
+                      const kpi = kpis.find((k) => k.id === plan.kpiId)
+                      return (
+                        <li
+                          key={plan.id}
+                          className="flex flex-col p-3 rounded-md bg-background/50 border border-border"
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="font-medium text-sm leading-tight">
+                              {kpi?.name || 'KPI Desconhecido'}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className="text-orange-500 border-orange-500/50 bg-orange-500/10 ml-2 shrink-0"
+                            >
+                              {new Date(plan.dueDate + 'T00:00:00').toLocaleDateString('pt-BR')}
+                            </Badge>
+                          </div>
+                          <span className="text-xs text-muted-foreground">{plan.responsible}</span>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Nenhum plano de ação atrasado.</p>
                 )}
               </CardContent>
             </Card>
