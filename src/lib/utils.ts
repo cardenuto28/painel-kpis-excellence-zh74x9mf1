@@ -18,6 +18,14 @@ export function parseDate(value: string | Date | undefined | null): Date {
       parseInt(dateOnly[3], 10),
     )
   }
+  const dateTime = /^(\d{4})-(\d{2})-(\d{2})[ T]/.exec(trimmed)
+  if (dateTime) {
+    return new Date(
+      parseInt(dateTime[1], 10),
+      parseInt(dateTime[2], 10) - 1,
+      parseInt(dateTime[3], 10),
+    )
+  }
   const normalized = trimmed.replace(' ', 'T')
   const parsed = new Date(normalized)
   return isNaN(parsed.getTime()) ? new Date(NaN) : parsed

@@ -13,7 +13,7 @@ export interface ActionPlan {
 }
 
 export function getFileUrl(recordId: string, filename: string): string {
-  const baseUrl = import.meta.env.VITE_POCKETBASE_URL
+  const baseUrl = import.meta.env.VITE_POCKETBASE_PUBLIC_URL || import.meta.env.VITE_POCKETBASE_URL
   return `${baseUrl}/api/files/action_plans/${recordId}/${filename}`
 }
 

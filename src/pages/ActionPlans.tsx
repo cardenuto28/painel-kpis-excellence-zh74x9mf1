@@ -400,17 +400,29 @@ export default function ActionPlans() {
             {editingPlanId && p_resultFile && editingPlan && (
               <div className="space-y-2">
                 <Label>Comprovante Atual</Label>
-                <Button type="button" variant="outline" size="sm" className="w-full" asChild>
-                  <a
-                    href={`${getFileUrl(editingPlan.id, editingPlan.resultFile)}?download=1`}
-                    download
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Baixar comprovante atual
-                  </a>
-                </Button>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" size="sm" className="flex-1" asChild>
+                    <a
+                      href={getFileUrl(editingPlan.id, editingPlan.resultFile)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Ver comprovante
+                    </a>
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" className="flex-1" asChild>
+                    <a
+                      href={`${getFileUrl(editingPlan.id, editingPlan.resultFile)}?download=1`}
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Baixar
+                    </a>
+                  </Button>
+                </div>
               </div>
             )}
             <div className="space-y-2">
