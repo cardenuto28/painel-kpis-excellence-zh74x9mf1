@@ -107,6 +107,41 @@ export default function Index() {
 
       {currentMonth && (
         <>
+          <div className="bg-gradient-to-r from-secondary/20 via-secondary/10 to-transparent border border-secondary/30 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-fade-in-up">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-secondary/20 flex items-center justify-center shrink-0">
+                <Target className="w-7 h-7 text-secondary" />
+              </div>
+              <div>
+                <h3 className="text-sm uppercase tracking-wider text-muted-foreground font-medium">
+                  Gap para o 1º Lugar
+                </h3>
+                <p className="text-4xl font-display font-bold text-secondary">
+                  -{Math.max(0, currentMonth.topDealerTotal - currentMonth.totalScore)} pontos
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="text-center">
+                <div className="text-2xl font-display font-bold text-primary">
+                  {currentMonth.totalScore}
+                </div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">
+                  Euro Motors
+                </div>
+              </div>
+              <span className="text-xl text-muted-foreground font-medium">vs</span>
+              <div className="text-center">
+                <div className="text-2xl font-display font-bold text-secondary">
+                  {currentMonth.topDealerTotal}
+                </div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">
+                  Top Dealer
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="col-span-1 border-border/50 bg-card/40 backdrop-blur-sm">
               <CardContent className="pt-6 pb-2">

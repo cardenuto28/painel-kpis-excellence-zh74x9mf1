@@ -29,8 +29,7 @@ import {
 } from '@/components/ui/form'
 import useDataStore from '@/stores/use-data-store'
 import { KPI_CATEGORIES, MONTH_NAMES } from '@/lib/kpi-definitions'
-import { buildRawValuesSchema, getDefaultRawValues } from '@/lib/entry-form-schema'
-import { KpiInput } from '@/components/entry/KpiInput'
+import { buildPointsSchema, getDefaultPoints } from '@/lib/entry-form-schema'
 import { Save, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -46,28 +45,30 @@ export default function EntryForm() {
     }
   }, [role, navigate])
 
-  const formSchema = useMemo(() => {
-    const rawValuesSchema = buildRawValuesSchema(kpis)
-    return z.object({
-      mes: z.string().min(1, 'Obrigatório'),
-      ano: z.coerce.number().min(2020).max(2050),
-      ranking: z.coerce.number().min(1),
-      topDealerTotal: z.coerce.number().min(0).max(100),
-      rawValues: rawValuesSchema,
-      topDealerRawValues: rawValuesSchema,
-    })
-  }, [kpis])
+  const pointsSchema = useMemo(() => buildPointsSchema(kpis), [kpis])
+  const formSchema = useMemo(
+    () =>
+      z.object({
+        mes: z.string().min(1, 'Obrigatório'),
+        ano: z.coerce.number().min(2020).max(2050),
+        ranking: z.coerce.number().min(1),
+        topDealerTotal: z.coerce.number().min(0).max(100),
+        points: pointsSchema,
+        topDealerPoints: pointsSchema,
+      }),
+    [pointsSchema],
+  )
 
   type FormValues = z.infer<typeof formSchema>
 
   const existingData = id ? months.find((m) => m.id === id) : null
 
-  const defaultRawValues = useMemo(
-    () => getDefaultRawValues(kpis, existingData?.rawValues),
+  const defaultPoints = useMemo(
+    () => getDefaultPoints(kpis, existingData?.points),
     [kpis, existingData],
   )
-  const defaultTopDealerRawValues = useMemo(
-    () => getDefaultRawValues(kpis, existingData?.topDealerRawValues),
+  const defaultTopDealerPoints = useMemo(
+    () => getDefaultPoints(kpis, existingData?.topDealerRawValues),
     [kpis, existingData],
   )
 
@@ -76,16 +77,16 @@ export default function EntryForm() {
     defaultValues: existingData
       ? {
           ...existingData,
-          rawValues: defaultRawValues,
-          topDealerRawValues: defaultTopDealerRawValues,
+          points: defaultPoints,
+          topDealerPoints: defaultTopDealerPoints,
         }
       : {
           mes: '',
           ano: new Date().getFullYear(),
           ranking: 1,
           topDealerTotal: 100,
-          rawValues: defaultRawValues,
-          topDealerRawValues: defaultTopDealerRawValues,
+          points: defaultPoints,
+          topDealerPoints: defaultTopDealerPoints,
         },
   })
 
@@ -103,7 +104,7 @@ export default function EntryForm() {
     }
   }
 
-  const renderKpiFields = (prefix: 'rawValues' | 'topDealerRawValues') =>
+  const renderKpiFields = (prefix: 'points' | 'topDealerPoints') =>
     KPI_CATEGORIES.map((category) => {
       const categoryKpis = kpis.filter((k) => k.category === category)
       if (categoryKpis.length === 0) return null
@@ -114,19 +115,19 @@ export default function EntryForm() {
           className="border bg-card rounded-lg px-6 overflow-hidden"
         >
           <AccordionTrigger className="hover:no-underline font-display text-lg py-6">
-            {prefix === 'topDealerRawValues' ? 'Top Dealer · ' : ''}
+            {prefix === 'topDealerPoints' ? 'Top Dealer · ' : ''}
             {category}
             <span className="ml-auto mr-4 text-sm text-muted-foreground font-sans font-normal">
               Máx: {categoryKpis.reduce((sum, k) => sum + k.maxPoints, 0)} pts
             </span>
           </AccordionTrigger>
           <AccordionContent className="pt-2 pb-6">
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-8 gap-y-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-8 gap-y-4">
               {categoryKpis.map((kpi) => (
                 <FormField
                   key={kpi.id}
                   control={form.control}
-                  name={`${prefix}.${kpi.id}`}
+                  name={`${prefix}.${kpi.id}` as any}
                   render={({ field }) => (
                     <FormItem className="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0 p-4 border rounded-md bg-background/50">
                       <div className="space-y-0.5 sm:max-w-[200px]">
@@ -138,7 +139,14 @@ export default function EntryForm() {
                         </span>
                       </div>
                       <FormControl>
-                        <KpiInput kpi={kpi} value={field.value} onChange={field.onChange} />
+                        <Input
+                          type="number"
+                          min={0}
+                          max={kpi.maxPoints}
+                          step="0.1"
+                          className="w-full sm:w-24 text-right font-mono"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -162,7 +170,7 @@ export default function EntryForm() {
             {id ? 'Editar Lançamento' : 'Novo Lançamento Mensal'}
           </h2>
           <p className="text-muted-foreground text-sm">
-            Insira os dados brutos de performance. O sistema calculará os pontos automaticamente.
+            Insira os pontos conquistados em cada KPI diretamente.
           </p>
         </div>
       </div>
@@ -242,10 +250,10 @@ export default function EntryForm() {
 
           <Accordion
             type="multiple"
-            defaultValue={KPI_CATEGORIES.map((c) => `rawValues-${c}`)}
+            defaultValue={KPI_CATEGORIES.map((c) => `points-${c}`)}
             className="space-y-4"
           >
-            {renderKpiFields('rawValues')}
+            {renderKpiFields('points')}
           </Accordion>
 
           <Accordion type="multiple" className="space-y-4">
@@ -254,13 +262,13 @@ export default function EntryForm() {
               className="border border-secondary/30 bg-secondary/5 rounded-lg overflow-hidden"
             >
               <AccordionTrigger className="hover:no-underline font-display text-lg py-6 px-6 text-secondary">
-                Top Dealer — Valores de Referência
+                Top Dealer — Pontuação de Referência
                 <span className="ml-auto mr-4 text-sm text-muted-foreground font-sans font-normal">
                   Benchmark
                 </span>
               </AccordionTrigger>
               <AccordionContent className="px-6 pt-2 pb-6 space-y-4">
-                {renderKpiFields('topDealerRawValues')}
+                {renderKpiFields('topDealerPoints')}
               </AccordionContent>
             </AccordionItem>
           </Accordion>

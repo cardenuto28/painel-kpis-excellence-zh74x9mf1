@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useState, useCallback, type React
 import pb from '@/lib/pocketbase/client'
 import { useRealtime } from '@/hooks/use-realtime'
 import { useAuth } from '@/hooks/use-auth'
-import { calculateKpiPoints } from '@/lib/kpi-calculator'
 import type { KpiDef } from '@/lib/kpi-definitions'
 
 interface DataStoreContextType {
@@ -117,13 +116,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         type: k.type,
         tiers: parseJsonField(k.tiers),
       }))
-      const rawValues = data.rawValues || {}
-      const points: Record<string, number> = {}
+      const points: Record<string, number> = data.points || {}
       const categoryScores: Record<string, number> = {}
       for (const kpi of mappedKpis) {
-        const pts = calculateKpiPoints(kpi, rawValues[kpi.id])
-        points[kpi.id] = pts
-        categoryScores[kpi.category] = (categoryScores[kpi.category] || 0) + pts
+        categoryScores[kpi.category] = (categoryScores[kpi.category] || 0) + (points[kpi.id] || 0)
       }
       const totalScore = Object.values(points).reduce((a: number, b: number) => a + b, 0)
       const payload = {
@@ -131,8 +127,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         ano: data.ano,
         ranking: data.ranking,
         topDealerTotal: data.topDealerTotal,
-        rawValues: JSON.stringify(rawValues),
-        topDealerRawValues: JSON.stringify(data.topDealerRawValues || {}),
+        rawValues: JSON.stringify(points),
+        topDealerRawValues: JSON.stringify(data.topDealerPoints || {}),
         points: JSON.stringify(points),
         totalScore,
         categoryScores: JSON.stringify(categoryScores),

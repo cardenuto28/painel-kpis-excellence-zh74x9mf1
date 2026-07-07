@@ -1,6 +1,31 @@
 import { z } from 'zod'
 import { KpiDef } from '@/lib/kpi-definitions'
 
+export function buildPointsSchema(kpis: KpiDef[]) {
+  return z.object(
+    kpis.reduce(
+      (acc, kpi) => {
+        acc[kpi.id] = z.coerce.number().min(0).max(kpi.maxPoints).default(0)
+        return acc
+      },
+      {} as Record<string, z.ZodTypeAny>,
+    ),
+  )
+}
+
+export function getDefaultPoints(
+  kpis: KpiDef[],
+  existing?: Record<string, any>,
+): Record<string, any> {
+  return kpis.reduce(
+    (acc, kpi) => {
+      acc[kpi.id] = existing?.[kpi.id] ?? 0
+      return acc
+    },
+    {} as Record<string, any>,
+  )
+}
+
 export function buildRawValuesSchema(kpis: KpiDef[]) {
   return z.object(
     kpis.reduce(
