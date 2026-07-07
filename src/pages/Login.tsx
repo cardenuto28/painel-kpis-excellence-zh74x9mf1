@@ -1,28 +1,34 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import useDataStore from '@/stores/use-data-store'
+import { useAuth } from '@/hooks/use-auth'
 import logoUrl from '@/assets/bmweuromotorsjundiaibranco1-af726.png'
+import { toast } from 'sonner'
 
 export default function Login() {
   const [email, setEmail] = useState('')
-  const { setRole } = useDataStore()
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const { signIn, isAuthenticated } = useAuth()
   const navigate = useNavigate()
 
-  const handleLogin = (e: React.FormEvent) => {
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const lower = email.toLowerCase()
-    if (lower.includes('admin')) {
-      setRole('Admin')
-    } else if (lower.includes('editor')) {
-      setRole('Editor')
+    setLoading(true)
+    const { error } = await signIn(email, password)
+    if (error) {
+      toast.error('Credenciais inválidas. Verifique seu email e senha.')
+      setLoading(false)
     } else {
-      setRole('Visualizador')
+      navigate('/')
     }
-    navigate('/')
   }
 
   return (
@@ -47,18 +53,24 @@ export default function Login() {
               <Label>Email Corporativo</Label>
               <Input
                 type="email"
-                placeholder="Ex: editor@euromotors.com"
+                placeholder="seu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Use "admin" para gerenciar KPIs, "editor" para lançamentos, e qualquer outro para
-                visualizar.
-              </p>
             </div>
-            <Button type="submit" className="w-full h-11 text-base">
-              Entrar
+            <div className="space-y-2">
+              <Label>Senha</Label>
+              <Input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full h-11 text-base" disabled={loading}>
+              {loading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
         </CardContent>

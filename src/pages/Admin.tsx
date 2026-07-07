@@ -23,6 +23,7 @@ import {
 import useDataStore from '@/stores/use-data-store'
 import { KPI_CATEGORIES, KpiDef } from '@/lib/kpi-definitions'
 import { Plus, Edit, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function Admin() {
   const { kpis, saveKpi, deleteKpi, role } = useDataStore()
@@ -63,19 +64,22 @@ export default function Admin() {
     setIsDialogOpen(true)
   }
 
-  const onSubmit = (data: KpiDef) => {
+  const onSubmit = async (data: KpiDef) => {
     if (!data.id) data.id = crypto.randomUUID()
     if (data.type === 'boolean' || data.type === 'treinamentos') {
       data.tiers = []
     }
-    // ensure numbers
     data.maxPoints = Number(data.maxPoints)
     data.tiers?.forEach((t) => {
       t.value = Number(t.value)
       t.points = Number(t.points)
     })
-    saveKpi(data)
-    setIsDialogOpen(false)
+    try {
+      await saveKpi(data)
+      setIsDialogOpen(false)
+    } catch {
+      toast.error('Erro ao salvar KPI.')
+    }
   }
 
   return (
@@ -115,7 +119,13 @@ export default function Admin() {
                     <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(kpi)}>
                       <Edit className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => deleteKpi(kpi.id)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        deleteKpi(kpi.id).catch(() => toast.error('Erro ao excluir KPI.'))
+                      }}
+                    >
                       <Trash2 className="w-4 h-4 text-destructive" />
                     </Button>
                   </TableCell>

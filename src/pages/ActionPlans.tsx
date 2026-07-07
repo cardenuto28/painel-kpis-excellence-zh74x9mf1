@@ -25,6 +25,7 @@ import useDataStore from '@/stores/use-data-store'
 import { MONTH_NAMES } from '@/lib/kpi-definitions'
 import { Target, Edit, Trash2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
 export default function ActionPlans() {
   const { months, actionPlans, saveActionPlan, deleteActionPlan, role, kpis } = useDataStore()
@@ -59,19 +60,23 @@ export default function ActionPlans() {
   const { register, handleSubmit, reset, setValue, watch } = useForm()
   const statusWatch = watch('status')
 
-  const onSubmit = (data: any) => {
-    saveActionPlan({
-      id: editingPlanId || undefined,
-      monthId: selectedMonthId,
-      kpiId: selectedGapId,
-      description: data.description,
-      responsible: data.responsible,
-      dueDate: data.dueDate,
-      status: data.status || 'Pendente',
-    })
-    setIsDialogOpen(false)
-    setEditingPlanId(null)
-    reset()
+  const onSubmit = async (data: any) => {
+    try {
+      await saveActionPlan({
+        id: editingPlanId || undefined,
+        monthId: selectedMonthId,
+        kpiId: selectedGapId,
+        description: data.description,
+        responsible: data.responsible,
+        dueDate: data.dueDate,
+        status: data.status || 'Pendente',
+      })
+      setIsDialogOpen(false)
+      setEditingPlanId(null)
+      reset()
+    } catch {
+      toast.error('Erro ao salvar plano de ação.')
+    }
   }
 
   const handleOpenDialog = (kpiId: string) => {
@@ -275,7 +280,11 @@ export default function ActionPlans() {
                                   variant="ghost"
                                   size="icon"
                                   className="h-7 w-7"
-                                  onClick={() => deleteActionPlan(p.id)}
+                                  onClick={() => {
+                                    deleteActionPlan(p.id).catch(() =>
+                                      toast.error('Erro ao excluir plano.'),
+                                    )
+                                  }}
                                 >
                                   <Trash2 className="w-3.5 h-3.5 text-destructive" />
                                 </Button>

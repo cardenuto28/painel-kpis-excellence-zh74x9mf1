@@ -1,11 +1,13 @@
 import { User, Menu, LogOut } from 'lucide-react'
 import useDataStore from '@/stores/use-data-store'
+import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Sidebar } from './Sidebar'
 
 export function Header() {
-  const { role, setRole } = useDataStore()
+  const { role } = useDataStore()
+  const { signOut } = useAuth()
 
   return (
     <header className="h-20 border-b border-border bg-background/80 backdrop-blur-md flex items-center justify-between px-4 md:px-8 z-10 sticky top-0">
@@ -33,7 +35,7 @@ export function Header() {
             variant="ghost"
             size="icon"
             className="w-6 h-6 ml-2 hover:bg-destructive/20 hover:text-destructive"
-            onClick={() => setRole(null)}
+            onClick={() => signOut()}
             title="Sair"
           >
             <LogOut className="w-4 h-4" />

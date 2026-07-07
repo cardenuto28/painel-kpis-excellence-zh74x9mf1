@@ -89,14 +89,18 @@ export default function EntryForm() {
         },
   })
 
-  const onSubmit = (data: FormValues) => {
+  const onSubmit = async (data: FormValues) => {
     if (!id && months.some((m) => m.mes === data.mes && m.ano === data.ano)) {
       toast.error(`Já existe um registro para ${data.mes}/${data.ano}`)
       return
     }
-    saveMonth({ ...data, id })
-    toast.success('Lançamento salvo com sucesso!')
-    navigate('/history')
+    try {
+      await saveMonth({ ...data, id })
+      toast.success('Lançamento salvo com sucesso!')
+      navigate('/history')
+    } catch {
+      toast.error('Erro ao salvar lançamento.')
+    }
   }
 
   const renderKpiFields = (prefix: 'rawValues' | 'topDealerRawValues') =>

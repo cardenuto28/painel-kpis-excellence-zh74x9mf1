@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Edit, Trash2, Download } from 'lucide-react'
+import { toast } from 'sonner'
 import useDataStore from '@/stores/use-data-store'
 import { useNavigate } from 'react-router-dom'
 import { MONTH_NAMES } from '@/lib/kpi-definitions'
@@ -86,7 +87,13 @@ export default function History() {
                         >
                           <Edit className="w-4 h-4 text-muted-foreground hover:text-primary" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => deleteMonth(m.id)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            deleteMonth(m.id).catch(() => toast.error('Erro ao excluir registro.'))
+                          }}
+                        >
                           <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
                         </Button>
                       </TableCell>
