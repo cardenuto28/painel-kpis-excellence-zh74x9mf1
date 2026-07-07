@@ -23,11 +23,11 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import useDataStore from '@/stores/use-data-store'
 import { MONTH_NAMES } from '@/lib/kpi-definitions'
-import { Target, Edit, Trash2, FileText, Download } from 'lucide-react'
+import { Target, Edit, Trash2, Download, ExternalLink } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import pb from '@/lib/pocketbase/client'
-import { parseDate, toDatePickerValue } from '@/lib/utils'
+import { parseDate, toDatePickerValue, formatDateBR } from '@/lib/utils'
+import { getFileUrl } from '@/services/action-plans'
 
 export default function ActionPlans() {
   const { months, actionPlans, saveActionPlan, deleteActionPlan, role, kpis } = useDataStore()
@@ -106,27 +106,6 @@ export default function ActionPlans() {
     setValue('status', plan.status)
     setResultFile(null)
     setIsDialogOpen(true)
-  }
-
-  const handleViewFile = async (record: any, filename: string) => {
-    const fileUrl = pb.files.getURL(record, filename)
-    try {
-      const res = await fetch(fileUrl)
-      if (!res.ok) throw new Error('fetch failed')
-      const blob = await res.blob()
-      const blobUrl = URL.createObjectURL(blob)
-      window.open(blobUrl, '_blank')
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
-    } catch {
-      const a = document.createElement('a')
-      a.href = fileUrl
-      a.download = filename
-      a.target = '_blank'
-      a.rel = 'noopener noreferrer'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-    }
   }
 
   return (
@@ -250,10 +229,12 @@ export default function ActionPlans() {
                     const dueDate = parseDate(p.dueDate)
                     const today = new Date()
                     today.setHours(0, 0, 0, 0)
-                    const isOverdue = p.status !== 'Concluído' && dueDate < today
+                    const isOverdue =
+                      p.status !== 'Concluído' && !isNaN(dueDate.getTime()) && dueDate < today
                     const isUpcoming =
                       p.status !== 'Concluído' &&
                       !isOverdue &&
+                      !isNaN(dueDate.getTime()) &&
                       dueDate.getTime() - today.getTime() <= 7 * 24 * 60 * 60 * 1000
 
                     return (
@@ -264,19 +245,29 @@ export default function ActionPlans() {
                             {m?.mes} {m?.ano}
                           </div>
                           {p.resultFile && (
-                            <button
-                              type="button"
-                              onClick={() => handleViewFile(p, p.resultFile)}
-                              className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1"
-                            >
-                              <FileText className="w-3 h-3" /> Ver comprovante
-                            </button>
+                            <div className="flex items-center gap-2 mt-1">
+                              <a
+                                href={getFileUrl(p.id, p.resultFile)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                              >
+                                <ExternalLink className="w-3 h-3" /> Ver comprovante
+                              </a>
+                              <a
+                                href={`${getFileUrl(p.id, p.resultFile)}?download=1`}
+                                download
+                                className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1"
+                              >
+                                <Download className="w-3 h-3" /> Baixar
+                              </a>
+                            </div>
                           )}
                         </TableCell>
                         <TableCell className="text-sm">{p.responsible}</TableCell>
                         <TableCell className="text-sm">
                           <div className="flex flex-col gap-1 items-start">
-                            <span>{dueDate.toLocaleDateString('pt-BR')}</span>
+                            <span>{formatDateBR(p.dueDate)}</span>
                             {isOverdue && (
                               <Badge variant="destructive" className="text-[10px] h-4 px-1.5">
                                 Atrasado
@@ -345,7 +336,9 @@ export default function ActionPlans() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Novo Plano de Ação</DialogTitle>
+            <DialogTitle>
+              {editingPlanId ? 'Editar Plano de Ação' : 'Novo Plano de Ação'}
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
             <div className="space-y-2">
@@ -383,18 +376,19 @@ export default function ActionPlans() {
                 </Select>
               </div>
             )}
-            {editingPlanId && p_resultFile && (
+            {editingPlanId && p_resultFile && editingPlan && (
               <div className="space-y-2">
                 <Label>Comprovante Atual</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={() => handleViewFile(editingPlan, editingPlan.resultFile)}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Baixar comprovante atual
+                <Button type="button" variant="outline" size="sm" className="w-full" asChild>
+                  <a
+                    href={`${getFileUrl(editingPlan.id, editingPlan.resultFile)}?download=1`}
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Baixar comprovante atual
+                  </a>
                 </Button>
               </div>
             )}

@@ -1,4 +1,5 @@
 import pb from '@/lib/pocketbase/client'
+import { toDatePickerValue } from '@/lib/utils'
 
 export interface ActionPlan {
   id: string
@@ -11,22 +12,19 @@ export interface ActionPlan {
   resultFile?: string
 }
 
+export function getFileUrl(recordId: string, filename: string): string {
+  const baseUrl = import.meta.env.VITE_POCKETBASE_URL
+  return `${baseUrl}/api/files/action_plans/${recordId}/${filename}`
+}
+
 function mapRecord(record: any): ActionPlan {
-  const rawDate = record.dueDate || ''
-  const parsed = rawDate
-    ? new Date(rawDate.includes('T') ? rawDate : rawDate.replace(' ', 'T'))
-    : null
-  const isoDate =
-    parsed && !isNaN(parsed.getTime())
-      ? `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`
-      : rawDate
   return {
     id: record.id,
     monthId: record.monthId || '',
     kpiId: record.kpiId,
     description: record.description,
     responsible: record.responsible,
-    dueDate: isoDate,
+    dueDate: record.dueDate ? toDatePickerValue(record.dueDate) : '',
     status: record.status,
     resultFile: record.resultFile || '',
   }
