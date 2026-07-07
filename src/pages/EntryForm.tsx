@@ -32,6 +32,7 @@ import { KPI_CATEGORIES, MONTH_NAMES } from '@/lib/kpi-definitions'
 import { buildPointsSchema, getDefaultPoints } from '@/lib/entry-form-schema'
 import { Save, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 export default function EntryForm() {
   const { id } = useParams()
@@ -48,14 +49,29 @@ export default function EntryForm() {
   const pointsSchema = useMemo(() => buildPointsSchema(kpis), [kpis])
   const formSchema = useMemo(
     () =>
-      z.object({
-        mes: z.string().min(1, 'Obrigatório'),
-        ano: z.coerce.number().min(2020).max(2050),
-        ranking: z.coerce.number().min(1),
-        topDealerTotal: z.coerce.number().min(0).max(100),
-        points: pointsSchema,
-        topDealerPoints: pointsSchema,
-      }),
+      z
+        .object({
+          mes: z.string().min(1, 'Obrigatório'),
+          ano: z.coerce.number().min(2020).max(2050),
+          ranking: z.coerce.number().min(1),
+          topDealerTotal: z.coerce.number().min(0).max(100),
+          totalScore: z.coerce.number().min(0).max(100),
+          points: pointsSchema,
+          topDealerPoints: pointsSchema,
+        })
+        .refine(
+          (data) => {
+            const sum = Object.values(data.points).reduce(
+              (a: number, b: any) => a + (Number(b) || 0),
+              0,
+            )
+            return sum === data.totalScore
+          },
+          {
+            message: 'A soma dos pontos dos KPIs deve ser igual ao total informado.',
+            path: ['totalScore'],
+          },
+        ),
     [pointsSchema],
   )
 
@@ -85,10 +101,19 @@ export default function EntryForm() {
           ano: new Date().getFullYear(),
           ranking: 1,
           topDealerTotal: 100,
+          totalScore: 0,
           points: defaultPoints,
           topDealerPoints: defaultTopDealerPoints,
         },
   })
+
+  const watchedPoints = form.watch('points')
+  const watchedTotalScore = form.watch('totalScore')
+  const computedSum = useMemo(
+    () => Object.values(watchedPoints || {}).reduce((a: number, b: any) => a + (Number(b) || 0), 0),
+    [watchedPoints],
+  )
+  const sumMismatch = computedSum !== watchedTotalScore
 
   const onSubmit = async (data: FormValues) => {
     if (!id && months.some((m) => m.mes === data.mes && m.ano === data.ano)) {
@@ -181,7 +206,7 @@ export default function EntryForm() {
             <CardHeader>
               <CardTitle className="text-lg">Informações Gerais</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
               <FormField
                 control={form.control}
                 name="mes"
@@ -241,6 +266,33 @@ export default function EntryForm() {
                     <FormControl>
                       <Input type="number" step="0.1" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="totalScore"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Total de Pontos</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        className={cn(sumMismatch && 'border-destructive')}
+                        {...field}
+                      />
+                    </FormControl>
+                    {sumMismatch ? (
+                      <p className="text-xs text-destructive font-medium">
+                        Soma dos KPIs: {computedSum} pts — divergente!
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        Soma dos KPIs: {computedSum} pts
+                      </p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}

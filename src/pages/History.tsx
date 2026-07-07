@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -12,6 +12,16 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Edit, Trash2, Download, Upload } from 'lucide-react'
 import { toast } from 'sonner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import useDataStore from '@/stores/use-data-store'
 import { useNavigate } from 'react-router-dom'
 import { MONTH_NAMES } from '@/lib/kpi-definitions'
@@ -19,6 +29,7 @@ import { MONTH_NAMES } from '@/lib/kpi-definitions'
 export default function History() {
   const { months, role, deleteMonth } = useDataStore()
   const navigate = useNavigate()
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null)
 
   const sortedMonths = useMemo(() => {
     return [...months].sort((a, b) => {
@@ -95,9 +106,7 @@ export default function History() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => {
-                            deleteMonth(m.id).catch(() => toast.error('Erro ao excluir registro.'))
-                          }}
+                          onClick={() => setDeleteTarget({ id: m.id, label: `${m.mes} ${m.ano}` })}
                         >
                           <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
                         </Button>
@@ -110,6 +119,32 @@ export default function History() {
           </Table>
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o registro de {deleteTarget?.label}? Esta ação não pode
+              ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteTarget) {
+                  deleteMonth(deleteTarget.id).catch(() => toast.error('Erro ao excluir registro.'))
+                }
+                setDeleteTarget(null)
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

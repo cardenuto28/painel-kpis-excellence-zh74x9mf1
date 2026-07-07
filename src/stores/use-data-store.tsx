@@ -121,7 +121,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       for (const kpi of mappedKpis) {
         categoryScores[kpi.category] = (categoryScores[kpi.category] || 0) + (points[kpi.id] || 0)
       }
-      const totalScore = Object.values(points).reduce((a: number, b: number) => a + b, 0)
+      const totalScore =
+        data.totalScore ?? Object.values(points).reduce((a: number, b: number) => a + b, 0)
       const payload = {
         mes: data.mes,
         ano: data.ano,
