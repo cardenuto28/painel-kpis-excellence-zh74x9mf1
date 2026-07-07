@@ -8,9 +8,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
 import useDataStore from '@/stores/use-data-store'
 import { KPI_CATEGORIES, MONTH_NAMES, KpiDef } from '@/lib/kpi-definitions'
-import { Button } from '@/components/ui/button'
+import { processMonthData } from '@/lib/kpi-calculator'
+import { cn } from '@/lib/utils'
 
 const Sparkline = ({ data }: { data: number[] }) => {
   const max = Math.max(...data, 1)
@@ -39,8 +41,13 @@ const formatRawValue = (kpi: KpiDef, val: any) => {
   if (kpi.type === 'voc') return `NPS: ${val.nps || 0} (Falhas: ${val.failedSubIndicators || 0})`
   if (kpi.type === 'treinamentos')
     return `V:${val.vendas || 0} P:${val.pos || 0} T:${val.tecnico || 0}`
-  if (kpi.type === 'propostaComercial') return `${val.alcancado || 0} / ${val.meta || 0}`
   return String(val)
+}
+
+const getSituation = (maxPoints: number, currentPoints: number) => {
+  if (currentPoints >= maxPoints) return { label: 'Máximo', variant: 'maximo' as const }
+  if (currentPoints === 0) return { label: 'Crítico', variant: 'critico' as const }
+  return { label: 'Em Progresso', variant: 'zerou' as const }
 }
 
 export default function KpiDetails() {
@@ -61,18 +68,10 @@ export default function KpiDetails() {
 
   const currentMonth = months.find((m) => m.id === selectedMonthId)
 
-  const getSituation = (kpiId: string, maxPoints: number, currentPoints: number) => {
-    if (!currentMonth) return null
-
-    if (currentPoints >= maxPoints) return { label: 'Máximo', variant: 'maximo' as const }
-
-    const anyPastScore = chronologicalMonths.some((m) => (m.points[kpiId] || 0) > 0)
-    if (currentPoints === 0 && anyPastScore) return { label: 'Zerou', variant: 'zerou' as const }
-    if (currentPoints === 0 && !anyPastScore)
-      return { label: 'Crítico', variant: 'critico' as const }
-
-    return { label: 'Atenção', variant: 'zerou' as const }
-  }
+  const topDealerData = useMemo(() => {
+    if (!currentMonth?.topDealerRawValues) return null
+    return processMonthData(currentMonth.topDealerRawValues, kpis)
+  }, [currentMonth, kpis])
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -83,7 +82,6 @@ export default function KpiDetails() {
             Acompanhamento detalhado por indicador e evolução mensal.
           </p>
         </div>
-
         {sortedMonthsDesc.length > 0 && (
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium">Mês de Referência:</span>
@@ -111,6 +109,7 @@ export default function KpiDetails() {
               <th className="px-4 py-3 text-center">Realizado</th>
               <th className="px-4 py-3 text-center">Pontos</th>
               <th className="px-4 py-3 text-center">Gap</th>
+              <th className="px-4 py-3 text-center">Top Dealer</th>
               <th className="px-4 py-3 text-center">Situação</th>
               <th className="px-4 py-3 text-center">Evolução Anual</th>
               {(role === 'Editor' || role === 'Admin') && (
@@ -121,7 +120,6 @@ export default function KpiDetails() {
           {KPI_CATEGORIES.map((category) => {
             const categoryKpis = kpis.filter((k) => k.category === category)
             if (categoryKpis.length === 0) return null
-
             const maxCategoryPoints = categoryKpis.reduce((acc, k) => acc + k.maxPoints, 0)
 
             return (
@@ -140,9 +138,12 @@ export default function KpiDetails() {
                 {categoryKpis.map((kpi) => {
                   const pts = currentMonth?.points[kpi.id] || 0
                   const rawVal = currentMonth?.rawValues?.[kpi.id]
-                  const situation = getSituation(kpi.id, kpi.maxPoints, pts)
+                  const situation = getSituation(kpi.maxPoints, pts)
                   const gap = kpi.maxPoints - pts
                   const sparklineData = chronologicalMonths.map((m) => m.points[kpi.id] || 0)
+                  const tdPts = topDealerData?.points[kpi.id] || 0
+                  const tdRawVal = currentMonth?.topDealerRawValues?.[kpi.id]
+                  const tdBeats = tdPts > pts
 
                   return (
                     <tr key={kpi.id} className="hover:bg-muted/30 transition-colors">
@@ -151,16 +152,37 @@ export default function KpiDetails() {
                         {currentMonth ? formatRawValue(kpi, rawVal) : '-'}
                       </td>
                       <td className="px-4 py-3 text-center font-mono">
-                        <span
-                          className={
-                            pts >= kpi.maxPoints ? 'text-status-maximo' : 'text-foreground'
-                          }
-                        >
-                          {pts}
-                        </span>
-                        <span className="text-muted-foreground text-xs ml-1">
-                          / {kpi.maxPoints}
-                        </span>
+                        <div className="flex flex-col items-center gap-1">
+                          <span>
+                            <span
+                              className={cn(
+                                pts >= kpi.maxPoints
+                                  ? 'text-status-maximo'
+                                  : pts === 0
+                                    ? 'text-status-critico'
+                                    : 'text-foreground',
+                              )}
+                            >
+                              {pts}
+                            </span>
+                            <span className="text-muted-foreground text-xs ml-1">
+                              / {kpi.maxPoints}
+                            </span>
+                          </span>
+                          <div className="w-20 h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className={cn(
+                                'h-full rounded-full transition-all duration-500',
+                                pts >= kpi.maxPoints
+                                  ? 'bg-status-maximo'
+                                  : pts === 0
+                                    ? 'bg-status-critico'
+                                    : 'bg-primary',
+                              )}
+                              style={{ width: `${(pts / kpi.maxPoints) * 100}%` }}
+                            />
+                          </div>
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-center font-mono">
                         {gap > 0 ? (
@@ -169,17 +191,36 @@ export default function KpiDetails() {
                           <span className="text-muted-foreground">-</span>
                         )}
                       </td>
+                      <td className="px-4 py-3 text-center font-mono">
+                        {topDealerData ? (
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span
+                              className={cn(
+                                'text-xs',
+                                tdBeats ? 'text-secondary font-medium' : 'text-muted-foreground',
+                              )}
+                              title={formatRawValue(kpi, tdRawVal)}
+                            >
+                              {tdPts}
+                              {tdBeats && <span className="ml-1">▲</span>}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">-</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-center">
-                        {situation && currentMonth && (
+                        {currentMonth && (
                           <Badge
                             variant="outline"
-                            className={
-                              situation.variant === 'maximo'
-                                ? 'border-status-maximo text-status-maximo bg-status-maximo/10'
-                                : situation.variant === 'zerou'
-                                  ? 'border-status-zerou text-status-zerou bg-status-zerou/10'
-                                  : 'border-status-critico text-status-critico bg-status-critico/10'
-                            }
+                            className={cn(
+                              situation.variant === 'maximo' &&
+                                'border-status-maximo text-status-maximo bg-status-maximo/10',
+                              situation.variant === 'zerou' &&
+                                'border-status-zerou text-status-zerou bg-status-zerou/10',
+                              situation.variant === 'critico' &&
+                                'border-status-critico text-status-critico bg-status-critico/10',
+                            )}
                           >
                             {situation.label}
                           </Badge>
@@ -190,7 +231,7 @@ export default function KpiDetails() {
                       </td>
                       {(role === 'Editor' || role === 'Admin') && (
                         <td className="px-4 py-3 text-right">
-                          {situation?.variant !== 'maximo' && currentMonth && (
+                          {situation.variant !== 'maximo' && currentMonth && (
                             <Button
                               variant="ghost"
                               size="sm"

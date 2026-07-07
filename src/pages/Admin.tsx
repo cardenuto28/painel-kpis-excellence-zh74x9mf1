@@ -65,11 +65,7 @@ export default function Admin() {
 
   const onSubmit = (data: KpiDef) => {
     if (!data.id) data.id = crypto.randomUUID()
-    if (
-      data.type === 'boolean' ||
-      data.type === 'treinamentos' ||
-      data.type === 'propostaComercial'
-    ) {
+    if (data.type === 'boolean' || data.type === 'treinamentos') {
       data.tiers = []
     }
     // ensure numbers
@@ -178,7 +174,7 @@ export default function Admin() {
                     <SelectItem value="number">Número Absoluto</SelectItem>
                     <SelectItem value="boolean">Sim/Não</SelectItem>
                     <SelectItem value="treinamentos">Específico: Treinamentos</SelectItem>
-                    <SelectItem value="propostaComercial">Específico: Proposta</SelectItem>
+
                     <SelectItem value="voc">VoC (NPS + Deduções)</SelectItem>
                   </SelectContent>
                 </Select>

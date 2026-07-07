@@ -7,12 +7,6 @@ export function calculateKpiPoints(kpi: KpiDef, val: any): number {
     return Math.max(0, Math.min(total, 5))
   }
 
-  if (kpi.type === 'propostaComercial') {
-    const v = val || { alcancado: 0, meta: 0 }
-    if (v.meta > 0 && v.alcancado >= v.meta) return 4
-    return 0
-  }
-
   if (kpi.type === 'boolean') {
     return val ? kpi.maxPoints : 0
   }
@@ -77,7 +71,6 @@ export function processMonthData(rawValues: Record<string, any>, kpis: KpiDef[])
     if (val === undefined) {
       if (def.type === 'boolean') val = false
       else if (def.type === 'treinamentos') val = { vendas: 0, pos: 0, tecnico: 0 }
-      else if (def.type === 'propostaComercial') val = { alcancado: 0, meta: 0 }
       else if (def.type === 'voc') val = { nps: 0, failedSubIndicators: 0 }
       else val = 0
     }

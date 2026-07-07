@@ -20,7 +20,7 @@ export interface KpiDef {
   name: string
   category: KpiCategory
   maxPoints: number
-  type: 'percentage' | 'number' | 'boolean' | 'treinamentos' | 'propostaComercial' | 'voc'
+  type: 'percentage' | 'number' | 'boolean' | 'treinamentos' | 'voc'
   tiers?: KpiTier[]
 }
 
@@ -223,7 +223,11 @@ export const DEFAULT_KPI_DEFINITIONS: KpiDef[] = [
     name: 'BMW Proposta Comercial',
     category: 'CRM',
     maxPoints: 4,
-    type: 'propostaComercial',
+    type: 'percentage',
+    tiers: [
+      { id: 't1', operator: '<', value: 2.5, points: 0 },
+      { id: 't2', operator: '>=', value: 2.5, points: 4 },
+    ],
   },
 
   {

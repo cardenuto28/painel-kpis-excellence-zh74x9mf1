@@ -9,6 +9,7 @@ export interface MonthRecord {
   ranking: number
   topDealerTotal: number
   rawValues: Record<string, any>
+  topDealerRawValues?: Record<string, any>
   points: Record<string, number>
   totalScore: number
   categoryScores: Record<string, number>
@@ -50,7 +51,7 @@ const mockRawValuesMar = {
   treinamentos: { vendas: 2, pos: 2, tecnico: 1 },
   retailStandards: 98,
   ferramentasDigitais: true,
-  propostaComercial: { alcancado: 40, meta: 30 },
+  propostaComercial: 55.1,
   sfPenetration: 90,
 }
 
@@ -73,6 +74,45 @@ const mockRawValuesMay = {
   sfPenetration: 102,
 }
 
+const mockTopDealerRawValuesMar = {
+  vendasRetail: 126,
+  bev: 200,
+  gkl: 200,
+  mMpa: 167,
+  bps: 185,
+  vocVendas: { nps: 100, failedSubIndicators: 0 },
+  pecas: 197,
+  videos: 263,
+  clientesConectados: 268,
+  serviceInclusive: 303,
+  teleservice: 175,
+  ticketMedio: 258,
+  vocPos: { nps: 100, failedSubIndicators: 0 },
+  treinamentos: { vendas: 5, pos: 5, tecnico: 5 },
+  retailStandards: 100,
+  ferramentasDigitais: false,
+  propostaComercial: 100,
+  sfPenetration: 193,
+}
+
+const mockTopDealerRawValuesApr = {
+  ...mockTopDealerRawValuesMar,
+  vendasRetail: 124,
+  bps: 225,
+  pecas: 155,
+  serviceInclusive: 337,
+  mMpa: 200,
+}
+
+const mockTopDealerRawValuesMay = {
+  ...mockTopDealerRawValuesMar,
+  vendasRetail: 122,
+  pecas: 153,
+  serviceInclusive: 292,
+  sfPenetration: 221,
+  mMpa: 200,
+}
+
 const MOCK_MONTHS: MonthRecord[] = [
   {
     id: 'm-3',
@@ -81,6 +121,7 @@ const MOCK_MONTHS: MonthRecord[] = [
     ranking: 4,
     topDealerTotal: 88,
     rawValues: mockRawValuesMar,
+    topDealerRawValues: mockTopDealerRawValuesMar,
     ...processMonthData(mockRawValuesMar, DEFAULT_KPI_DEFINITIONS),
     criadoPor: 'admin',
     atualizadoEm: new Date().toISOString(),
@@ -92,6 +133,7 @@ const MOCK_MONTHS: MonthRecord[] = [
     ranking: 6,
     topDealerTotal: 85,
     rawValues: mockRawValuesApr,
+    topDealerRawValues: mockTopDealerRawValuesApr,
     ...processMonthData(mockRawValuesApr, DEFAULT_KPI_DEFINITIONS),
     criadoPor: 'admin',
     atualizadoEm: new Date().toISOString(),
@@ -103,13 +145,14 @@ const MOCK_MONTHS: MonthRecord[] = [
     ranking: 5,
     topDealerTotal: 84,
     rawValues: mockRawValuesMay,
+    topDealerRawValues: mockTopDealerRawValuesMay,
     ...processMonthData(mockRawValuesMay, DEFAULT_KPI_DEFINITIONS),
     criadoPor: 'admin',
     atualizadoEm: new Date().toISOString(),
   },
 ]
 
-const STORAGE_KEY = '@euro-motors/data-v3'
+const STORAGE_KEY = '@euro-motors/data-v4'
 
 function getInitialState(): AppState {
   try {
