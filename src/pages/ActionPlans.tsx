@@ -17,23 +17,17 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import useDataStore from '@/stores/use-data-store'
-import { KPI_DEFINITIONS, MONTH_NAMES } from '@/lib/kpi-definitions'
-import { Target, Plus, Edit, Trash2 } from 'lucide-react'
+import { MONTH_NAMES } from '@/lib/kpi-definitions'
+import { Target, Edit, Trash2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 
 export default function ActionPlans() {
-  const { months, actionPlans, saveActionPlan, deleteActionPlan, role } = useDataStore()
+  const { months, actionPlans, saveActionPlan, deleteActionPlan, role, kpis } = useDataStore()
 
   const sortedMonths = useMemo(() => {
     return [...months].sort((a, b) => {
@@ -50,15 +44,16 @@ export default function ActionPlans() {
 
   const gaps = useMemo(() => {
     if (!currentMonth) return []
-    return KPI_DEFINITIONS.filter((kpi) => currentMonth.points[kpi.id] < kpi.maxPoints)
+    return kpis
+      .filter((kpi) => (currentMonth.points[kpi.id] || 0) < kpi.maxPoints)
       .map((kpi) => ({
         kpi,
-        points: currentMonth.points[kpi.id],
-        gap: kpi.maxPoints - currentMonth.points[kpi.id],
+        points: currentMonth.points[kpi.id] || 0,
+        gap: kpi.maxPoints - (currentMonth.points[kpi.id] || 0),
         hasPlan: actionPlans.some((p) => p.monthId === currentMonth.id && p.kpiId === kpi.id),
       }))
       .sort((a, b) => b.gap - a.gap)
-  }, [currentMonth, actionPlans])
+  }, [currentMonth, actionPlans, kpis])
 
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null)
   const { register, handleSubmit, reset, setValue } = useForm()
@@ -127,7 +122,6 @@ export default function ActionPlans() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Gaps Table */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-display flex items-center gap-2">
@@ -174,7 +168,7 @@ export default function ActionPlans() {
                             size="sm"
                             variant="secondary"
                             className="h-7 text-xs"
-                            disabled={role !== 'Editor'}
+                            disabled={role !== 'Editor' && role !== 'Admin'}
                             onClick={() => handleOpenDialog(g.kpi.id)}
                           >
                             Criar Plano
@@ -189,7 +183,6 @@ export default function ActionPlans() {
           </CardContent>
         </Card>
 
-        {/* Existing Plans */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-display">Planos Ativos</CardTitle>
@@ -214,7 +207,7 @@ export default function ActionPlans() {
                 ) : (
                   actionPlans.map((p) => {
                     const m = months.find((x) => x.id === p.monthId)
-                    const k = KPI_DEFINITIONS.find((x) => x.id === p.kpiId)
+                    const k = kpis.find((x) => x.id === p.kpiId)
                     return (
                       <TableRow key={p.id}>
                         <TableCell>
@@ -237,7 +230,7 @@ export default function ActionPlans() {
                           >
                             {p.status}
                           </Badge>
-                          {role === 'Editor' && (
+                          {(role === 'Editor' || role === 'Admin') && (
                             <div className="flex gap-1 ml-4">
                               <Button
                                 variant="ghost"

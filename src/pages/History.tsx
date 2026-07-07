@@ -77,7 +77,7 @@ export default function History() {
                         -{m.topDealerTotal - m.totalScore}
                       </span>
                     </TableCell>
-                    {role === 'Editor' && (
+                    {(role === 'Editor' || role === 'Admin') && (
                       <TableCell className="text-right space-x-2">
                         <Button
                           variant="ghost"

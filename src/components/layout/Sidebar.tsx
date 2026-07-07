@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, History, Target, PlusCircle } from 'lucide-react'
+import { LayoutDashboard, History, Target, PlusCircle, Settings, ListTree } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import useDataStore from '@/stores/use-data-store'
 import logoUrl from '@/assets/bmw-euro-motors-jundiai-branco-04826.pdf'
@@ -10,6 +10,7 @@ export function Sidebar() {
 
   const links = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/kpi-details', label: 'Detalhes KPIs', icon: ListTree },
     { href: '/history', label: 'Histórico', icon: History },
     { href: '/action-plans', label: 'Planos de Ação', icon: Target },
   ]
@@ -43,7 +44,7 @@ export function Sidebar() {
           </Link>
         ))}
 
-        {role === 'Editor' && (
+        {(role === 'Editor' || role === 'Admin') && (
           <div className="pt-6 mt-6 border-t border-border/50">
             <Link
               to="/entry"
@@ -56,6 +57,23 @@ export function Sidebar() {
             >
               <PlusCircle className="w-5 h-5" />
               <span>Novo Lançamento</span>
+            </Link>
+          </div>
+        )}
+
+        {role === 'Admin' && (
+          <div className="pt-2">
+            <Link
+              to="/admin"
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
+                pathname.startsWith('/admin')
+                  ? 'bg-muted text-foreground font-medium'
+                  : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+              )}
+            >
+              <Settings className="w-5 h-5" />
+              <span>Admin KPIs</span>
             </Link>
           </div>
         )}

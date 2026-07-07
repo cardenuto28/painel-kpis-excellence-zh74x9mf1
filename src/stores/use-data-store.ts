@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { processMonthData } from '@/lib/kpi-calculator'
+import { KpiDef, DEFAULT_KPI_DEFINITIONS } from '@/lib/kpi-definitions'
 
 export interface MonthRecord {
   id: string
@@ -26,9 +27,10 @@ export interface ActionPlan {
 }
 
 interface AppState {
-  role: 'Editor' | 'Visualizador' | null
+  role: 'Admin' | 'Editor' | 'Visualizador' | null
   months: MonthRecord[]
   actionPlans: ActionPlan[]
+  kpis: KpiDef[]
 }
 
 const mockRawValuesMar = {
@@ -79,7 +81,7 @@ const MOCK_MONTHS: MonthRecord[] = [
     ranking: 4,
     topDealerTotal: 88,
     rawValues: mockRawValuesMar,
-    ...processMonthData(mockRawValuesMar),
+    ...processMonthData(mockRawValuesMar, DEFAULT_KPI_DEFINITIONS),
     criadoPor: 'admin',
     atualizadoEm: new Date().toISOString(),
   },
@@ -90,7 +92,7 @@ const MOCK_MONTHS: MonthRecord[] = [
     ranking: 6,
     topDealerTotal: 85,
     rawValues: mockRawValuesApr,
-    ...processMonthData(mockRawValuesApr),
+    ...processMonthData(mockRawValuesApr, DEFAULT_KPI_DEFINITIONS),
     criadoPor: 'admin',
     atualizadoEm: new Date().toISOString(),
   },
@@ -101,18 +103,23 @@ const MOCK_MONTHS: MonthRecord[] = [
     ranking: 5,
     topDealerTotal: 84,
     rawValues: mockRawValuesMay,
-    ...processMonthData(mockRawValuesMay),
+    ...processMonthData(mockRawValuesMay, DEFAULT_KPI_DEFINITIONS),
     criadoPor: 'admin',
     atualizadoEm: new Date().toISOString(),
   },
 ]
 
-const STORAGE_KEY = '@euro-motors/data-v2'
+const STORAGE_KEY = '@euro-motors/data-v3'
 
 function getInitialState(): AppState {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) return JSON.parse(stored)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      // Ensure we have kpis in state if migrating from old store
+      if (!parsed.kpis) parsed.kpis = DEFAULT_KPI_DEFINITIONS
+      return parsed
+    }
   } catch {
     /* intentionally ignored */
   }
@@ -120,6 +127,7 @@ function getInitialState(): AppState {
   return {
     role: null,
     months: MOCK_MONTHS,
+    kpis: DEFAULT_KPI_DEFINITIONS,
     actionPlans: [
       {
         id: 'p-1',
@@ -153,7 +161,7 @@ export const store = {
     listeners.add(listener)
     return () => listeners.delete(listener)
   },
-  setRole: (role: 'Editor' | 'Visualizador' | null) => {
+  setRole: (role: AppState['role']) => {
     state = { ...state, role }
     notify()
   },
@@ -163,7 +171,7 @@ export const store = {
       'id' | 'points' | 'totalScore' | 'categoryScores' | 'criadoPor' | 'atualizadoEm'
     > & { id?: string },
   ) => {
-    const { points, categoryScores, totalScore } = processMonthData(data.rawValues)
+    const { points, categoryScores, totalScore } = processMonthData(data.rawValues, state.kpis)
     const now = new Date().toISOString()
 
     if (data.id) {
@@ -182,7 +190,7 @@ export const store = {
         points,
         categoryScores,
         totalScore,
-        criadoPor: 'editor@euromotors.com',
+        criadoPor: state.role?.toLowerCase() || 'editor',
         atualizadoEm: now,
       }
       state = { ...state, months: [...state.months, newMonth] }
@@ -209,6 +217,22 @@ export const store = {
   },
   deleteActionPlan: (id: string) => {
     state = { ...state, actionPlans: state.actionPlans.filter((p) => p.id !== id) }
+    notify()
+  },
+  saveKpi: (kpi: KpiDef) => {
+    const exists = state.kpis.find((k) => k.id === kpi.id)
+    if (exists) {
+      state = {
+        ...state,
+        kpis: state.kpis.map((k) => (k.id === kpi.id ? kpi : k)),
+      }
+    } else {
+      state = { ...state, kpis: [...state.kpis, kpi] }
+    }
+    notify()
+  },
+  deleteKpi: (id: string) => {
+    state = { ...state, kpis: state.kpis.filter((k) => k.id !== id) }
     notify()
   },
 }

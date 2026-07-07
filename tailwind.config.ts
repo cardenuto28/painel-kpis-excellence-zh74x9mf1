@@ -59,6 +59,20 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        status: {
+          maximo: {
+            DEFAULT: 'hsl(var(--status-maximo))',
+            foreground: 'hsl(var(--status-maximo-foreground))',
+          },
+          zerou: {
+            DEFAULT: 'hsl(var(--status-zerou))',
+            foreground: 'hsl(var(--status-zerou-foreground))',
+          },
+          critico: {
+            DEFAULT: 'hsl(var(--status-critico))',
+            foreground: 'hsl(var(--status-critico-foreground))',
+          },
+        },
         chart: {
           1: 'hsl(var(--chart-1))',
           2: 'hsl(var(--chart-2))',

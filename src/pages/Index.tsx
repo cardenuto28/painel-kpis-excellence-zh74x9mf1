@@ -14,12 +14,12 @@ import {
   Legend,
 } from 'recharts'
 import useDataStore from '@/stores/use-data-store'
-import { KPI_CATEGORIES, KPI_DEFINITIONS, MONTH_NAMES } from '@/lib/kpi-definitions'
+import { MONTH_NAMES } from '@/lib/kpi-definitions'
 import { Gauge } from '@/components/dashboard/Gauge'
 import { AlertCircle, Target, TrendingDown, TrendingUp } from 'lucide-react'
 
 export default function Index() {
-  const { months } = useDataStore()
+  const { months, kpis } = useDataStore()
 
   const sortedMonths = useMemo(() => {
     return [...months].sort((a, b) => {
@@ -35,7 +35,7 @@ export default function Index() {
   const prevMonth = sortedMonths[currentIndex + 1]
 
   const deltaScore = prevMonth ? (currentMonth?.totalScore || 0) - prevMonth.totalScore : 0
-  const rankDelta = prevMonth ? (currentMonth?.ranking || 0) - prevMonth.ranking : 0 // negative is good
+  const rankDelta = prevMonth ? (currentMonth?.ranking || 0) - prevMonth.ranking : 0
 
   const chartData = useMemo(() => {
     return [...sortedMonths].reverse().map((m) => ({
@@ -50,36 +50,37 @@ export default function Index() {
     }))
   }, [sortedMonths])
 
-  // Insights Logic
   const insights = useMemo(() => {
     if (!currentMonth) return { critical: [], attention: [] }
     const allMonthsData = sortedMonths
 
-    const critical = KPI_DEFINITIONS.filter(
-      (kpi) => allMonthsData.length > 0 && allMonthsData.every((m) => m.points[kpi.id] === 0),
+    const critical = kpis.filter(
+      (kpi) =>
+        allMonthsData.length > 0 && allMonthsData.every((m) => (m.points[kpi.id] || 0) === 0),
     )
 
-    const attention = KPI_DEFINITIONS.filter((kpi) => {
+    const attention = kpis.filter((kpi) => {
       if (critical.includes(kpi)) return false
-      const currentZero = currentMonth.points[kpi.id] === 0
-      const wasScoring = allMonthsData.some((m) => m.id !== currentMonth.id && m.points[kpi.id] > 0)
+      const currentZero = (currentMonth.points[kpi.id] || 0) === 0
+      const wasScoring = allMonthsData.some(
+        (m) => m.id !== currentMonth.id && (m.points[kpi.id] || 0) > 0,
+      )
       return currentZero && wasScoring
     })
 
     return { critical, attention }
-  }, [currentMonth, sortedMonths])
+  }, [currentMonth, sortedMonths, kpis])
 
   if (months.length === 0) {
     return (
       <div className="text-center py-20 text-muted-foreground">
-        Nenhum dado cadastrado. Use o botão "Novo Lançamento".
+        Nenhum dado cadastrado. Use o menu "Novo Lançamento".
       </div>
     )
   }
 
   return (
     <div className="space-y-8 animate-slide-up">
-      {/* Month Selector */}
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
         {sortedMonths.map((m) => (
           <button
@@ -98,7 +99,6 @@ export default function Index() {
 
       {currentMonth && (
         <>
-          {/* Hero Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="col-span-1 border-border/50 bg-card/40 backdrop-blur-sm">
               <CardContent className="pt-6 pb-2">
@@ -153,7 +153,6 @@ export default function Index() {
             </Card>
           </div>
 
-          {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -295,7 +294,6 @@ export default function Index() {
             </Card>
           </div>
 
-          {/* Insights */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="border-destructive/30 bg-destructive/5 relative overflow-hidden">
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-destructive/50"></div>

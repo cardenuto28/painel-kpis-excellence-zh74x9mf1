@@ -35,6 +35,13 @@
 
     --radius: 0.75rem;
 
+    --status-maximo: 167 33% 46%;
+    --status-maximo-foreground: 0 0% 100%;
+    --status-zerou: 39 67% 54%;
+    --status-zerou-foreground: 0 0% 100%;
+    --status-critico: 14 48% 59%;
+    --status-critico-foreground: 0 0% 100%;
+
     /* Categories Colors */
     --chart-1: 208 39% 54%; /* Vendas */
     --chart-2: 167 33% 46%; /* Suporte */

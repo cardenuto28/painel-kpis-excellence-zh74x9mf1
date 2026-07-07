@@ -14,7 +14,10 @@ export default function Login() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    if (email.toLowerCase().includes('editor')) {
+    const lower = email.toLowerCase()
+    if (lower.includes('admin')) {
+      setRole('Admin')
+    } else if (lower.includes('editor')) {
       setRole('Editor')
     } else {
       setRole('Visualizador')
@@ -50,7 +53,8 @@ export default function Login() {
                 required
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Para ter permissão total, use um email que contenha a palavra "editor".
+                Use "admin" para gerenciar KPIs, "editor" para lançamentos, e qualquer outro para
+                visualizar.
               </p>
             </div>
             <Button type="submit" className="w-full h-11 text-base">
