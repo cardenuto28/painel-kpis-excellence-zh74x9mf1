@@ -17,6 +17,37 @@ export function calculateKpiPoints(kpi: KpiDef, val: any): number {
     return val ? kpi.maxPoints : 0
   }
 
+  if (kpi.type === 'voc') {
+    const v = val || { nps: 0, failedSubIndicators: 0 }
+    let basePoints = 0
+    if (kpi.tiers && kpi.tiers.length > 0) {
+      for (const tier of kpi.tiers) {
+        if (tier.operator === '<' && v.nps < tier.value) {
+          basePoints = tier.points
+          break
+        }
+        if (tier.operator === '<=' && v.nps <= tier.value) {
+          basePoints = tier.points
+          break
+        }
+        if (tier.operator === '==' && v.nps === tier.value) {
+          basePoints = tier.points
+          break
+        }
+        if (tier.operator === '>=' && v.nps >= tier.value) {
+          basePoints = tier.points
+          break
+        }
+        if (tier.operator === '>' && v.nps > tier.value) {
+          basePoints = tier.points
+          break
+        }
+      }
+    }
+    const deducted = basePoints - (v.failedSubIndicators || 0) * 5
+    return Math.max(0, deducted)
+  }
+
   const v = Number(val) || 0
 
   if (kpi.tiers && kpi.tiers.length > 0) {
@@ -47,6 +78,7 @@ export function processMonthData(rawValues: Record<string, any>, kpis: KpiDef[])
       if (def.type === 'boolean') val = false
       else if (def.type === 'treinamentos') val = { vendas: 0, pos: 0, tecnico: 0 }
       else if (def.type === 'propostaComercial') val = { alcancado: 0, meta: 0 }
+      else if (def.type === 'voc') val = { nps: 0, failedSubIndicators: 0 }
       else val = 0
     }
 

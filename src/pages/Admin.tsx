@@ -179,6 +179,7 @@ export default function Admin() {
                     <SelectItem value="boolean">Sim/Não</SelectItem>
                     <SelectItem value="treinamentos">Específico: Treinamentos</SelectItem>
                     <SelectItem value="propostaComercial">Específico: Proposta</SelectItem>
+                    <SelectItem value="voc">VoC (NPS + Deduções)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -188,7 +189,7 @@ export default function Admin() {
               </div>
             </div>
 
-            {(typeWatch === 'percentage' || typeWatch === 'number') && (
+            {(typeWatch === 'percentage' || typeWatch === 'number' || typeWatch === 'voc') && (
               <div className="space-y-4 border-t pt-4 border-border/50">
                 <div className="flex justify-between items-center">
                   <Label>Régua de Pontos (Tiers)</Label>

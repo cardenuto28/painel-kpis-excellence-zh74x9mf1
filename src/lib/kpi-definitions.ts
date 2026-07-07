@@ -20,7 +20,7 @@ export interface KpiDef {
   name: string
   category: KpiCategory
   maxPoints: number
-  type: 'percentage' | 'number' | 'boolean' | 'treinamentos' | 'propostaComercial'
+  type: 'percentage' | 'number' | 'boolean' | 'treinamentos' | 'propostaComercial' | 'voc'
   tiers?: KpiTier[]
 }
 
@@ -92,7 +92,7 @@ export const DEFAULT_KPI_DEFINITIONS: KpiDef[] = [
     name: 'VoC Vendas',
     category: 'Vendas',
     maxPoints: 5,
-    type: 'number',
+    type: 'voc',
     tiers: [
       { id: 't1', operator: '<', value: 93, points: 0 },
       { id: 't2', operator: '<', value: 96, points: 3 },
@@ -182,7 +182,7 @@ export const DEFAULT_KPI_DEFINITIONS: KpiDef[] = [
     name: 'VoC Pós-Vendas',
     category: 'Suporte ao Cliente',
     maxPoints: 7,
-    type: 'number',
+    type: 'voc',
     tiers: [
       { id: 't1', operator: '<', value: 80, points: 0 },
       { id: 't2', operator: '<', value: 87, points: 3 },

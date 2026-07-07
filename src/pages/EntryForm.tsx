@@ -61,6 +61,11 @@ export default function EntryForm() {
             alcancado: z.coerce.number().min(0).default(0),
             meta: z.coerce.number().min(0).default(0),
           })
+        } else if (kpi.type === 'voc') {
+          acc[kpi.id] = z.object({
+            nps: z.coerce.number().min(0).max(200).default(0),
+            failedSubIndicators: z.coerce.number().min(0).max(5).default(0),
+          })
         } else {
           acc[kpi.id] = z.coerce.number().min(0).max(1000).default(0)
         }
@@ -90,6 +95,8 @@ export default function EntryForm() {
         acc[kpi.id] = existing ?? { vendas: 0, pos: 0, tecnico: 0 }
       } else if (kpi.type === 'propostaComercial') {
         acc[kpi.id] = existing ?? { alcancado: 0, meta: 0 }
+      } else if (kpi.type === 'voc') {
+        acc[kpi.id] = existing ?? { nps: 0, failedSubIndicators: 0 }
       } else {
         acc[kpi.id] = existing ?? 0
       }
@@ -307,6 +314,44 @@ export default function EntryForm() {
                                           field.onChange({
                                             ...(field.value as any),
                                             tecnico: Number(e.target.value),
+                                          })
+                                        }
+                                      />
+                                    </div>
+                                  </div>
+                                ) : kpi.type === 'voc' ? (
+                                  <div className="flex gap-3 w-full sm:w-auto">
+                                    <div className="space-y-1">
+                                      <FormLabel className="text-[10px] uppercase text-muted-foreground">
+                                        NPS
+                                      </FormLabel>
+                                      <Input
+                                        type="number"
+                                        step="0.1"
+                                        className="w-full sm:w-20 h-8 px-2"
+                                        value={(field.value as any)?.nps ?? ''}
+                                        onChange={(e) =>
+                                          field.onChange({
+                                            ...(field.value as any),
+                                            nps: Number(e.target.value),
+                                          })
+                                        }
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <FormLabel className="text-[10px] uppercase text-muted-foreground">
+                                        Falhas (0-5)
+                                      </FormLabel>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        max="5"
+                                        className="w-full sm:w-20 h-8 px-2"
+                                        value={(field.value as any)?.failedSubIndicators ?? ''}
+                                        onChange={(e) =>
+                                          field.onChange({
+                                            ...(field.value as any),
+                                            failedSubIndicators: Number(e.target.value),
                                           })
                                         }
                                       />
