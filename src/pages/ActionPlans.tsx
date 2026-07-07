@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
   Select,
@@ -27,10 +27,29 @@ import { Target, Edit, Trash2, Download, ExternalLink } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { parseDate, toDatePickerValue, formatDateBR } from '@/lib/utils'
-import { getFileUrl } from '@/services/action-plans'
+import { getFileUrl, getActionPlans } from '@/services/action-plans'
+import { useRealtime } from '@/hooks/use-realtime'
 
 export default function ActionPlans() {
-  const { months, actionPlans, saveActionPlan, deleteActionPlan, role, kpis } = useDataStore()
+  const {
+    months,
+    actionPlans: storeActionPlans,
+    saveActionPlan,
+    deleteActionPlan,
+    role,
+    kpis,
+  } = useDataStore()
+  const [actionPlans, setActionPlans] = useState(storeActionPlans)
+
+  useEffect(() => {
+    setActionPlans(storeActionPlans)
+  }, [storeActionPlans])
+
+  useRealtime('action_plans', () => {
+    getActionPlans()
+      .then(setActionPlans)
+      .catch(() => {})
+  })
 
   const sortedMonths = useMemo(() => {
     return [...months].sort((a, b) => {
@@ -102,7 +121,7 @@ export default function ActionPlans() {
     setSelectedGapId(plan.kpiId)
     setValue('description', plan.description)
     setValue('responsible', plan.responsible)
-    setValue('dueDate', toDatePickerValue(plan.dueDate))
+    setValue('dueDate', plan.dueDate ? toDatePickerValue(plan.dueDate) : '')
     setValue('status', plan.status)
     setResultFile(null)
     setIsDialogOpen(true)
@@ -257,6 +276,8 @@ export default function ActionPlans() {
                               <a
                                 href={`${getFileUrl(p.id, p.resultFile)}?download=1`}
                                 download
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1"
                               >
                                 <Download className="w-3 h-3" /> Baixar

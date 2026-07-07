@@ -1,59 +1,48 @@
-/* General utility functions (exposes cn) */
-import { clsx, type ClassValue } from 'clsx'
+import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
-/**
- * Merges multiple class names into a single string
- * @param inputs - Array of class names
- * @returns Merged class names
- */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Add any other utility functions here
-
-export function parseDate(value: string | Date): Date {
+export function parseDate(value: string | Date | undefined | null): Date {
+  if (!value) return new Date(NaN)
   if (value instanceof Date) return value
-  if (!value || typeof value !== 'string') return new Date(NaN)
-
-  const trimmed = value.trim()
+  const trimmed = String(value).trim()
   if (!trimmed) return new Date(NaN)
-
-  if (trimmed.includes('T')) {
-    const d = new Date(trimmed)
-    if (!isNaN(d.getTime())) return d
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed)
+  if (dateOnly) {
+    return new Date(
+      parseInt(dateOnly[1], 10),
+      parseInt(dateOnly[2], 10) - 1,
+      parseInt(dateOnly[3], 10),
+    )
   }
-
-  if (trimmed.includes(' ')) {
-    const d = new Date(trimmed.replace(' ', 'T'))
-    if (!isNaN(d.getTime())) return d
-  }
-
-  const parts = trimmed.split(/[-/]/)
-  if (parts.length === 3) {
-    const [y, m, d] = parts.map(Number)
-    if (y && m && d) {
-      const dt = new Date(Date.UTC(y, m - 1, d))
-      if (!isNaN(dt.getTime())) return dt
-    }
-  }
-
-  const d = new Date(trimmed)
-  return isNaN(d.getTime()) ? new Date(NaN) : d
+  const normalized = trimmed.replace(' ', 'T')
+  const parsed = new Date(normalized)
+  return isNaN(parsed.getTime()) ? new Date(NaN) : parsed
 }
 
-export function formatDateBR(value: string | Date): string {
-  const d = parseDate(value)
-  if (isNaN(d.getTime())) return '—'
-  return d.toLocaleDateString('pt-BR', { timeZone: 'UTC' })
-}
-
-export function toDatePickerValue(value: string | Date): string {
-  const d = parseDate(value)
-  if (isNaN(d.getTime())) return ''
-  const year = d.getUTCFullYear()
-  const month = String(d.getUTCMonth() + 1).padStart(2, '0')
-  const day = String(d.getUTCDate()).padStart(2, '0')
+export function toDatePickerValue(value: string | Date | undefined | null): string {
+  if (!value) return ''
+  const trimmed = String(value).trim()
+  if (!trimmed) return ''
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed)
+  if (dateOnly) return trimmed
+  const date = value instanceof Date ? value : parseDate(value)
+  if (isNaN(date.getTime())) return ''
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
+}
+
+export function formatDateBR(value: string | Date | undefined | null): string {
+  if (!value) return ''
+  const date = parseDate(value)
+  if (isNaN(date.getTime())) return ''
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
 }
