@@ -29,7 +29,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import useDataStore from '@/stores/use-data-store'
 import { KPI_DEFINITIONS, MONTH_NAMES } from '@/lib/kpi-definitions'
-import { Target, Plus } from 'lucide-react'
+import { Target, Plus, Edit, Trash2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 
 export default function ActionPlans() {
@@ -60,23 +60,40 @@ export default function ActionPlans() {
       .sort((a, b) => b.gap - a.gap)
   }, [currentMonth, actionPlans])
 
+  const [editingPlanId, setEditingPlanId] = useState<string | null>(null)
   const { register, handleSubmit, reset, setValue } = useForm()
 
   const onSubmit = (data: any) => {
     saveActionPlan({
+      id: editingPlanId || undefined,
       monthId: selectedMonthId,
       kpiId: selectedGapId,
       description: data.description,
       responsible: data.responsible,
       dueDate: data.dueDate,
-      status: 'Pendente',
+      status: editingPlanId
+        ? actionPlans.find((p) => p.id === editingPlanId)?.status || 'Pendente'
+        : 'Pendente',
     })
     setIsDialogOpen(false)
+    setEditingPlanId(null)
     reset()
   }
 
   const handleOpenDialog = (kpiId: string) => {
+    setEditingPlanId(null)
     setSelectedGapId(kpiId)
+    reset()
+    setIsDialogOpen(true)
+  }
+
+  const handleEditPlan = (plan: any) => {
+    setEditingPlanId(plan.id)
+    setSelectedMonthId(plan.monthId)
+    setSelectedGapId(plan.kpiId)
+    setValue('description', plan.description)
+    setValue('responsible', plan.responsible)
+    setValue('dueDate', plan.dueDate)
     setIsDialogOpen(true)
   }
 
@@ -207,7 +224,7 @@ export default function ActionPlans() {
                           </div>
                         </TableCell>
                         <TableCell className="text-sm">{p.responsible}</TableCell>
-                        <TableCell>
+                        <TableCell className="flex items-center justify-between">
                           <Badge
                             variant="outline"
                             className={
@@ -220,6 +237,26 @@ export default function ActionPlans() {
                           >
                             {p.status}
                           </Badge>
+                          {role === 'Editor' && (
+                            <div className="flex gap-1 ml-4">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => handleEditPlan(p)}
+                              >
+                                <Edit className="w-3.5 h-3.5 text-muted-foreground" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => deleteActionPlan(p.id)}
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                              </Button>
+                            </div>
+                          )}
                         </TableCell>
                       </TableRow>
                     )

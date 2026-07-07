@@ -1,11 +1,4 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { User, Menu } from 'lucide-react'
+import { User, Menu, LogOut } from 'lucide-react'
 import useDataStore from '@/stores/use-data-store'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
@@ -33,17 +26,18 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-3 bg-card px-3 py-1.5 rounded-full border border-border">
+        <div className="flex items-center gap-3 bg-card px-4 py-1.5 rounded-full border border-border">
           <User className="w-4 h-4 text-muted-foreground" />
-          <Select value={role} onValueChange={(v) => setRole(v as any)}>
-            <SelectTrigger className="h-8 border-0 bg-transparent shadow-none focus:ring-0 w-[130px] p-0 font-medium">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Editor">Editor (Gerência)</SelectItem>
-              <SelectItem value="Visualizador">Visualizador</SelectItem>
-            </SelectContent>
-          </Select>
+          <span className="text-sm font-medium">{role}</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-6 h-6 ml-2 hover:bg-destructive/20 hover:text-destructive"
+            onClick={() => setRole(null)}
+            title="Sair"
+          >
+            <LogOut className="w-4 h-4" />
+          </Button>
         </div>
       </div>
     </header>

@@ -7,7 +7,7 @@ export interface MonthRecord {
   ano: number
   ranking: number
   topDealerTotal: number
-  rawValues: Record<string, number | boolean>
+  rawValues: Record<string, any>
   points: Record<string, number>
   totalScore: number
   categoryScores: Record<string, number>
@@ -26,7 +26,7 @@ export interface ActionPlan {
 }
 
 interface AppState {
-  role: 'Editor' | 'Visualizador'
+  role: 'Editor' | 'Visualizador' | null
   months: MonthRecord[]
   actionPlans: ActionPlan[]
 }
@@ -45,10 +45,10 @@ const mockRawValuesMar = {
   teleservice: 105,
   ticketMedio: 90,
   vocPos: 90,
-  treinamentos: 5,
+  treinamentos: { vendas: 2, pos: 2, tecnico: 1 },
   retailStandards: 98,
   ferramentasDigitais: true,
-  propostaComercial: 40,
+  propostaComercial: { alcancado: 40, meta: 30 },
   sfPenetration: 90,
 }
 
@@ -107,25 +107,43 @@ const MOCK_MONTHS: MonthRecord[] = [
   },
 ]
 
-let state: AppState = {
-  role: 'Editor',
-  months: MOCK_MONTHS,
-  actionPlans: [
-    {
-      id: 'p-1',
-      monthId: 'm-5',
-      kpiId: 'pecas',
-      description: 'Realizar campanha de vendas de lifestyle na recepção.',
-      responsible: 'João Silva',
-      dueDate: '2026-06-15',
-      status: 'Em Andamento',
-    },
-  ],
+const STORAGE_KEY = '@euro-motors/data-v2'
+
+function getInitialState(): AppState {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) return JSON.parse(stored)
+  } catch {
+    /* intentionally ignored */
+  }
+
+  return {
+    role: null,
+    months: MOCK_MONTHS,
+    actionPlans: [
+      {
+        id: 'p-1',
+        monthId: 'm-5',
+        kpiId: 'pecas',
+        description: 'Realizar campanha de vendas de lifestyle na recepção.',
+        responsible: 'João Silva',
+        dueDate: '2026-06-15',
+        status: 'Em Andamento',
+      },
+    ],
+  }
 }
+
+let state: AppState = getInitialState()
 
 const listeners = new Set<() => void>()
 
 function notify() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  } catch {
+    /* intentionally ignored */
+  }
   listeners.forEach((l) => l())
 }
 
@@ -135,7 +153,7 @@ export const store = {
     listeners.add(listener)
     return () => listeners.delete(listener)
   },
-  setRole: (role: 'Editor' | 'Visualizador') => {
+  setRole: (role: 'Editor' | 'Visualizador' | null) => {
     state = { ...state, role }
     notify()
   },

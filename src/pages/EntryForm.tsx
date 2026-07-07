@@ -33,13 +33,23 @@ import { KPI_CATEGORIES, KPI_DEFINITIONS, MONTH_NAMES } from '@/lib/kpi-definiti
 import { Save, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 
-// Create zod schema dynamically based on KPIs
 const rawValuesSchema = z.object(
   KPI_DEFINITIONS.reduce((acc, kpi) => {
     if (kpi.type === 'boolean') {
       acc[kpi.id] = z.boolean().default(false)
+    } else if (kpi.type === 'treinamentos') {
+      acc[kpi.id] = z.object({
+        vendas: z.coerce.number().min(0).default(0),
+        pos: z.coerce.number().min(0).default(0),
+        tecnico: z.coerce.number().min(0).default(0),
+      })
+    } else if (kpi.type === 'propostaComercial') {
+      acc[kpi.id] = z.object({
+        alcancado: z.coerce.number().min(0).default(0),
+        meta: z.coerce.number().min(0).default(0),
+      })
     } else {
-      acc[kpi.id] = z.coerce.number().min(0).max(1000)
+      acc[kpi.id] = z.coerce.number().min(0).max(1000).default(0)
     }
     return acc
   }, {} as any),
@@ -69,27 +79,38 @@ export default function EntryForm() {
 
   const existingData = id ? months.find((m) => m.id === id) : null
 
+  const defaultRawValues = KPI_DEFINITIONS.reduce((acc, kpi) => {
+    const existing = existingData?.rawValues?.[kpi.id]
+    if (kpi.type === 'boolean') {
+      acc[kpi.id] = existing ?? false
+    } else if (kpi.type === 'treinamentos') {
+      acc[kpi.id] = existing ?? { vendas: 0, pos: 0, tecnico: 0 }
+    } else if (kpi.type === 'propostaComercial') {
+      acc[kpi.id] = existing ?? { alcancado: 0, meta: 0 }
+    } else {
+      acc[kpi.id] = existing ?? 0
+    }
+    return acc
+  }, {} as any)
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: existingData || {
-      mes: '',
-      ano: new Date().getFullYear(),
-      ranking: 1,
-      topDealerTotal: 100,
-      rawValues: KPI_DEFINITIONS.reduce((acc, kpi) => {
-        acc[kpi.id] = kpi.type === 'boolean' ? false : 0
-        return acc
-      }, {} as any),
-    },
+    defaultValues: existingData
+      ? { ...existingData, rawValues: defaultRawValues }
+      : {
+          mes: '',
+          ano: new Date().getFullYear(),
+          ranking: 1,
+          topDealerTotal: 100,
+          rawValues: defaultRawValues,
+        },
   })
 
   const onSubmit = (data: FormValues) => {
-    // Check for duplicates
     if (!id && months.some((m) => m.mes === data.mes && m.ano === data.ano)) {
       toast.error(`Já existe um registro para ${data.mes}/${data.ano}`)
       return
     }
-
     saveMonth({ ...data, id })
     toast.success('Lançamento salvo com sucesso!')
     navigate('/history')
@@ -210,19 +231,19 @@ export default function EntryForm() {
                   </span>
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-8 gap-y-6">
                     {KPI_DEFINITIONS.filter((k) => k.category === category).map((kpi) => (
                       <FormField
                         key={kpi.id}
                         control={form.control}
                         name={`rawValues.${kpi.id}`}
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between space-y-0 p-3 border rounded-md bg-background/50">
-                            <div className="space-y-0.5 max-w-[200px]">
+                          <FormItem className="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0 p-4 border rounded-md bg-background/50">
+                            <div className="space-y-0.5 sm:max-w-[200px]">
                               <FormLabel className="text-sm font-medium leading-tight block">
                                 {kpi.name}
                               </FormLabel>
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-xs text-muted-foreground block">
                                 Máx: {kpi.maxPoints} pts
                               </span>
                             </div>
@@ -237,13 +258,100 @@ export default function EntryForm() {
                                     onCheckedChange={field.onChange}
                                   />
                                 </div>
+                              ) : kpi.type === 'treinamentos' ? (
+                                <div className="flex gap-3 w-full sm:w-auto">
+                                  <div className="space-y-1">
+                                    <FormLabel className="text-[10px] uppercase text-muted-foreground">
+                                      Vendas
+                                    </FormLabel>
+                                    <Input
+                                      type="number"
+                                      className="w-full sm:w-16 h-8 text-center px-1"
+                                      value={(field.value as any)?.vendas ?? ''}
+                                      onChange={(e) =>
+                                        field.onChange({
+                                          ...(field.value as any),
+                                          vendas: Number(e.target.value),
+                                        })
+                                      }
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <FormLabel className="text-[10px] uppercase text-muted-foreground">
+                                      Pós
+                                    </FormLabel>
+                                    <Input
+                                      type="number"
+                                      className="w-full sm:w-16 h-8 text-center px-1"
+                                      value={(field.value as any)?.pos ?? ''}
+                                      onChange={(e) =>
+                                        field.onChange({
+                                          ...(field.value as any),
+                                          pos: Number(e.target.value),
+                                        })
+                                      }
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <FormLabel className="text-[10px] uppercase text-muted-foreground">
+                                      Técnico
+                                    </FormLabel>
+                                    <Input
+                                      type="number"
+                                      className="w-full sm:w-16 h-8 text-center px-1"
+                                      value={(field.value as any)?.tecnico ?? ''}
+                                      onChange={(e) =>
+                                        field.onChange({
+                                          ...(field.value as any),
+                                          tecnico: Number(e.target.value),
+                                        })
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                              ) : kpi.type === 'propostaComercial' ? (
+                                <div className="flex gap-3 w-full sm:w-auto">
+                                  <div className="space-y-1">
+                                    <FormLabel className="text-[10px] uppercase text-muted-foreground">
+                                      Alcançado
+                                    </FormLabel>
+                                    <Input
+                                      type="number"
+                                      className="w-full sm:w-24 h-8 px-2"
+                                      value={(field.value as any)?.alcancado ?? ''}
+                                      onChange={(e) =>
+                                        field.onChange({
+                                          ...(field.value as any),
+                                          alcancado: Number(e.target.value),
+                                        })
+                                      }
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <FormLabel className="text-[10px] uppercase text-muted-foreground">
+                                      Meta Trimestre
+                                    </FormLabel>
+                                    <Input
+                                      type="number"
+                                      className="w-full sm:w-24 h-8 px-2"
+                                      value={(field.value as any)?.meta ?? ''}
+                                      onChange={(e) =>
+                                        field.onChange({
+                                          ...(field.value as any),
+                                          meta: Number(e.target.value),
+                                        })
+                                      }
+                                    />
+                                  </div>
+                                </div>
                               ) : (
-                                <div className="relative w-24">
+                                <div className="relative w-full sm:w-28">
                                   <Input
                                     type="number"
                                     step="0.01"
                                     className="pr-8 text-right font-mono"
-                                    {...field}
+                                    value={field.value as number}
+                                    onChange={(e) => field.onChange(Number(e.target.value))}
                                   />
                                   {kpi.type === 'percentage' && (
                                     <span className="absolute right-3 top-2.5 text-muted-foreground text-sm">

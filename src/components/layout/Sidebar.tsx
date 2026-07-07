@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { LayoutDashboard, History, Target, PlusCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import useDataStore from '@/stores/use-data-store'
+import logoUrl from '@/assets/bmw-euro-motors-jundiai-branco-04826.pdf'
 
 export function Sidebar() {
   const { pathname } = useLocation()
@@ -15,11 +16,13 @@ export function Sidebar() {
 
   return (
     <aside className="w-64 border-r border-border bg-card hidden md:flex flex-col z-20 shadow-elevation">
-      <div className="h-20 flex flex-col justify-center px-6 border-b border-border/50">
-        <div className="text-2xl font-display font-bold text-primary tracking-tight">
-          Euro Motors
-        </div>
-        <div className="text-xs text-muted-foreground uppercase tracking-widest mt-1">
+      <div className="h-28 flex flex-col justify-center items-center px-6 border-b border-border/50 bg-black pt-4">
+        <embed
+          src={`${logoUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+          type="application/pdf"
+          className="w-full h-12 pointer-events-none"
+        />
+        <div className="text-[10px] text-white uppercase tracking-[0.2em] mt-3 font-display font-medium">
           Excellence Club
         </div>
       </div>

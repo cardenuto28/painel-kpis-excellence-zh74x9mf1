@@ -33,7 +33,7 @@ export interface KpiDef {
   name: string
   category: KpiCategory
   maxPoints: number
-  type: 'percentage' | 'number' | 'boolean'
+  type: 'percentage' | 'number' | 'boolean' | 'treinamentos' | 'propostaComercial'
 }
 
 export const KPI_DEFINITIONS: KpiDef[] = [
@@ -110,7 +110,7 @@ export const KPI_DEFINITIONS: KpiDef[] = [
     name: 'Treinamentos',
     category: 'Suporte ao Cliente',
     maxPoints: 5,
-    type: 'number',
+    type: 'treinamentos',
   },
 
   {
@@ -133,7 +133,7 @@ export const KPI_DEFINITIONS: KpiDef[] = [
     name: 'BMW Proposta Comercial',
     category: 'CRM',
     maxPoints: 4,
-    type: 'percentage',
+    type: 'propostaComercial',
   },
 
   {
