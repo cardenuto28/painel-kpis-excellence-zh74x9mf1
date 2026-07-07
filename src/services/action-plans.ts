@@ -12,13 +12,21 @@ export interface ActionPlan {
 }
 
 function mapRecord(record: any): ActionPlan {
+  const rawDate = record.dueDate || ''
+  const parsed = rawDate
+    ? new Date(rawDate.includes('T') ? rawDate : rawDate.replace(' ', 'T'))
+    : null
+  const isoDate =
+    parsed && !isNaN(parsed.getTime())
+      ? `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`
+      : rawDate
   return {
     id: record.id,
     monthId: record.monthId || '',
     kpiId: record.kpiId,
     description: record.description,
     responsible: record.responsible,
-    dueDate: record.dueDate,
+    dueDate: isoDate,
     status: record.status,
     resultFile: record.resultFile || '',
   }

@@ -23,9 +23,11 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import useDataStore from '@/stores/use-data-store'
 import { MONTH_NAMES } from '@/lib/kpi-definitions'
-import { Target, Edit, Trash2, FileText } from 'lucide-react'
+import { Target, Edit, Trash2, FileText, Download } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import pb from '@/lib/pocketbase/client'
+import { parseDate, toDatePickerValue } from '@/lib/utils'
 
 export default function ActionPlans() {
   const { months, actionPlans, saveActionPlan, deleteActionPlan, role, kpis } = useDataStore()
@@ -60,6 +62,9 @@ export default function ActionPlans() {
   const [resultFile, setResultFile] = useState<File | null>(null)
   const { register, handleSubmit, reset, setValue, watch } = useForm()
   const statusWatch = watch('status')
+
+  const editingPlan = actionPlans.find((p) => p.id === editingPlanId)
+  const p_resultFile = editingPlan?.resultFile
 
   const onSubmit = async (data: any) => {
     try {
@@ -97,9 +102,31 @@ export default function ActionPlans() {
     setSelectedGapId(plan.kpiId)
     setValue('description', plan.description)
     setValue('responsible', plan.responsible)
-    setValue('dueDate', plan.dueDate)
+    setValue('dueDate', toDatePickerValue(plan.dueDate))
     setValue('status', plan.status)
+    setResultFile(null)
     setIsDialogOpen(true)
+  }
+
+  const handleViewFile = async (record: any, filename: string) => {
+    const fileUrl = pb.files.getURL(record, filename)
+    try {
+      const res = await fetch(fileUrl)
+      if (!res.ok) throw new Error('fetch failed')
+      const blob = await res.blob()
+      const blobUrl = URL.createObjectURL(blob)
+      window.open(blobUrl, '_blank')
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
+    } catch {
+      const a = document.createElement('a')
+      a.href = fileUrl
+      a.download = filename
+      a.target = '_blank'
+      a.rel = 'noopener noreferrer'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    }
   }
 
   return (
@@ -220,7 +247,7 @@ export default function ActionPlans() {
                     const m = months.find((x) => x.id === p.monthId)
                     const k = kpis.find((x) => x.id === p.kpiId)
 
-                    const dueDate = new Date(p.dueDate + 'T00:00:00')
+                    const dueDate = parseDate(p.dueDate)
                     const today = new Date()
                     today.setHours(0, 0, 0, 0)
                     const isOverdue = p.status !== 'Concluído' && dueDate < today
@@ -237,14 +264,13 @@ export default function ActionPlans() {
                             {m?.mes} {m?.ano}
                           </div>
                           {p.resultFile && (
-                            <a
-                              href={`${import.meta.env.VITE_POCKETBASE_URL}/api/files/action_plans/${p.id}/${p.resultFile}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <button
+                              type="button"
+                              onClick={() => handleViewFile(p, p.resultFile)}
                               className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1"
                             >
                               <FileText className="w-3 h-3" /> Ver comprovante
-                            </a>
+                            </button>
                           )}
                         </TableCell>
                         <TableCell className="text-sm">{p.responsible}</TableCell>
@@ -355,6 +381,21 @@ export default function ActionPlans() {
                     <SelectItem value="Concluído">Concluído</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            )}
+            {editingPlanId && p_resultFile && (
+              <div className="space-y-2">
+                <Label>Comprovante Atual</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => handleViewFile(editingPlan, editingPlan.resultFile)}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Baixar comprovante atual
+                </Button>
               </div>
             )}
             <div className="space-y-2">
