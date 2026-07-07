@@ -30,7 +30,7 @@ import {
 import useDataStore from '@/stores/use-data-store'
 import { KPI_CATEGORIES, MONTH_NAMES } from '@/lib/kpi-definitions'
 import { buildPointsSchema, getDefaultPoints } from '@/lib/entry-form-schema'
-import { Save, ArrowLeft } from 'lucide-react'
+import { Save, ArrowLeft, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -325,8 +325,19 @@ export default function EntryForm() {
             </AccordionItem>
           </Accordion>
 
-          <div className="flex justify-end pt-4">
-            <Button type="submit" size="lg" className="gap-2 w-full md:w-auto">
+          <div className="flex flex-col items-end gap-2 pt-4">
+            {sumMismatch && (
+              <p className="text-sm text-destructive font-medium flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4" />
+                Corrija a divergência para habilitar o salvamento.
+              </p>
+            )}
+            <Button
+              type="submit"
+              size="lg"
+              className="gap-2 w-full md:w-auto"
+              disabled={sumMismatch}
+            >
               <Save className="w-5 h-5" /> Salvar Lançamento
             </Button>
           </div>

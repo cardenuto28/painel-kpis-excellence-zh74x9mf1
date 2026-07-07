@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Edit, Trash2, Download, Upload } from 'lucide-react'
+import { exportMonthRecordsCSV } from '@/lib/export-utils'
 import { toast } from 'sonner'
 import {
   AlertDialog,
@@ -27,7 +28,7 @@ import { useNavigate } from 'react-router-dom'
 import { MONTH_NAMES } from '@/lib/kpi-definitions'
 
 export default function History() {
-  const { months, role, deleteMonth } = useDataStore()
+  const { months, role, deleteMonth, kpis } = useDataStore()
   const navigate = useNavigate()
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null)
 
@@ -46,7 +47,18 @@ export default function History() {
           <Button variant="secondary" className="gap-2" onClick={() => navigate('/import')}>
             <Upload className="w-4 h-4" /> Importar Dados
           </Button>
-          <Button variant="outline" className="gap-2">
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => {
+              if (months.length === 0) {
+                toast.error('Nenhum registro para exportar.')
+                return
+              }
+              exportMonthRecordsCSV(months, kpis)
+              toast.success('CSV exportado com sucesso!')
+            }}
+          >
             <Download className="w-4 h-4" /> Exportar CSV
           </Button>
         </div>

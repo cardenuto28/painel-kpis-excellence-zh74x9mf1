@@ -16,7 +16,9 @@ import {
 import useDataStore from '@/stores/use-data-store'
 import { MONTH_NAMES } from '@/lib/kpi-definitions'
 import { Gauge } from '@/components/dashboard/Gauge'
-import { AlertCircle, Target, TrendingDown, TrendingUp, Clock } from 'lucide-react'
+import { AlertCircle, Target, TrendingDown, TrendingUp, Clock, FileDown } from 'lucide-react'
+import { exportMonthPDF } from '@/lib/export-utils'
+import { toast } from 'sonner'
 
 export default function Index() {
   const { months, kpis, actionPlans } = useDataStore()
@@ -89,20 +91,35 @@ export default function Index() {
 
   return (
     <div className="space-y-8 animate-slide-up">
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-        {sortedMonths.map((m) => (
-          <button
-            key={m.id}
-            onClick={() => setSelectedId(m.id)}
-            className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all border ${
-              selectedId === m.id
-                ? 'bg-primary text-primary-foreground border-primary shadow-md'
-                : 'bg-card text-muted-foreground border-border hover:bg-secondary/10 hover:text-foreground'
-            }`}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          {sortedMonths.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setSelectedId(m.id)}
+              className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all border ${
+                selectedId === m.id
+                  ? 'bg-primary text-primary-foreground border-primary shadow-md'
+                  : 'bg-card text-muted-foreground border-border hover:bg-secondary/10 hover:text-foreground'
+              }`}
+            >
+              {m.mes} {m.ano}
+            </button>
+          ))}
+        </div>
+        {currentMonth && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 shrink-0"
+            onClick={() => {
+              exportMonthPDF(currentMonth, kpis)
+              toast.success('Gerando PDF do relatório...')
+            }}
           >
-            {m.mes} {m.ano}
-          </button>
-        ))}
+            <FileDown className="w-4 h-4" /> Exportar PDF
+          </Button>
+        )}
       </div>
 
       {currentMonth && (
