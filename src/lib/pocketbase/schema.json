@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-07T15:30:01.158Z",
+  "generatedAt": "2026-07-07T15:49:51.765Z",
   "collections": [
     {
       "name": "users",
@@ -37,12 +37,251 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "role",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["Admin", "Editor", "Visualizador"]
         }
       ],
       "indexes": [
         "CREATE UNIQUE INDEX `idx_tokenKey__pb_users_auth_` ON `users` (`tokenKey`)",
         "CREATE UNIQUE INDEX `idx_email__pb_users_auth_` ON `users` (`email`) WHERE `email` != ''"
       ]
+    },
+    {
+      "name": "kpi_definitions",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != ''"
+      },
+      "fields": [
+        {
+          "name": "kpiId",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "category",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": [
+            "Vendas",
+            "Suporte ao Cliente",
+            "Desenvolvimento de Rede",
+            "CRM",
+            "Serviços Financeiros"
+          ]
+        },
+        {
+          "name": "maxPoints",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "type",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["percentage", "number", "boolean", "treinamentos", "voc"]
+        },
+        {
+          "name": "tiers",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "sort_order",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE UNIQUE INDEX idx_kpi_definitions_kpiId ON kpi_definitions (kpiId)"]
+    },
+    {
+      "name": "month_records",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != ''"
+      },
+      "fields": [
+        {
+          "name": "mes",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "ano",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "ranking",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "topDealerTotal",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "rawValues",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "topDealerRawValues",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "points",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "totalScore",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "categoryScores",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "criadoPor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE INDEX idx_month_records_ano_mes ON month_records (ano, mes)"]
+    },
+    {
+      "name": "action_plans",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != ''"
+      },
+      "fields": [
+        {
+          "name": "monthId",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "month_records"
+        },
+        {
+          "name": "kpiId",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "responsible",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "dueDate",
+          "type": "date",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["Pendente", "Em Andamento", "Concluído"]
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE INDEX idx_action_plans_monthId ON action_plans (monthId)"]
     }
   ]
 }

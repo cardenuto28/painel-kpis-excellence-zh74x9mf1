@@ -134,7 +134,7 @@ migrate(
       {
         kpiId: 'fin_financiamento',
         name: 'Penetracao de Financiamento',
-        category: 'Servicos Financeiros',
+        category: 'Serviços Financeiros',
         maxPoints: 8,
         type: 'percentage',
         sort_order: 17,
@@ -142,7 +142,7 @@ migrate(
       {
         kpiId: 'fin_seguros',
         name: 'Seguros',
-        category: 'Servicos Financeiros',
+        category: 'Serviços Financeiros',
         maxPoints: 6,
         type: 'percentage',
         sort_order: 18,
@@ -150,7 +150,7 @@ migrate(
       {
         kpiId: 'fin_produtos',
         name: 'Produtos Financeiros',
-        category: 'Servicos Financeiros',
+        category: 'Serviços Financeiros',
         maxPoints: 6,
         type: 'percentage',
         sort_order: 19,
@@ -158,7 +158,7 @@ migrate(
       {
         kpiId: 'fin_prazo',
         name: 'Prazo Medio de Recebimento',
-        category: 'Servicos Financeiros',
+        category: 'Serviços Financeiros',
         maxPoints: 4,
         type: 'number',
         sort_order: 20,
