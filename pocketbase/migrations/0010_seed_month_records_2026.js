@@ -288,7 +288,7 @@ migrate(
         description: 'Implementar programa de follow-up pos-venda para melhorar NPS de vendas.',
         responsible: 'Carlos Silva',
         dueDate: '2026-03-15',
-        status: 'Concluido',
+        status: 'Concluído',
       },
       {
         mesKey: 'Janeiro',
