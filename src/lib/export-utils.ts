@@ -1,4 +1,4 @@
-import { KpiDef, MONTH_NAMES } from '@/lib/kpi-definitions'
+import { KpiDef, MONTH_NAMES, KPI_CATEGORIES } from '@/lib/kpi-definitions'
 
 export function exportMonthRecordsCSV(months: any[], kpis: KpiDef[]): void {
   const headers = [
@@ -166,4 +166,61 @@ export function exportMonthPDF(month: any, kpis: KpiDef[]): void {
       printWindow.print()
     }, 500)
   }
+}
+
+export function exportMonthReportCSV(month: any, kpis: KpiDef[], actionPlans: any[]): void {
+  const lines: string[] = []
+  const gap = month.topDealerTotal - month.totalScore
+
+  lines.push('RELATÓRIO MENSAL DE KPIs')
+  lines.push('')
+  lines.push('Mês,Ano,Ranking,Score Total,Top Dealer,Gap')
+  lines.push(
+    `${month.mes},${month.ano},${month.ranking},${month.totalScore},${month.topDealerTotal},${gap}`,
+  )
+  lines.push('')
+
+  lines.push('PONTUAÇÃO POR CATEGORIA')
+  lines.push('')
+  lines.push('Categoria,Pontos')
+  KPI_CATEGORIES.forEach((cat) => {
+    lines.push(`"${cat}",${month.categoryScores?.[cat] ?? 0}`)
+  })
+  lines.push('')
+
+  lines.push('DETALHAMENTO DE KPIs')
+  lines.push('')
+  lines.push('KPI,Categoria,Pontos,Máximo,Gap,Valor Realizado')
+  kpis.forEach((kpi) => {
+    const pts = month.points?.[kpi.id] ?? 0
+    const kpiGap = kpi.maxPoints - pts
+    const rawVal = month.rawValues?.[kpi.id] ?? ''
+    const rawStr = typeof rawVal === 'object' ? JSON.stringify(rawVal) : String(rawVal)
+    lines.push(`"${kpi.name}","${kpi.category}",${pts},${kpi.maxPoints},${kpiGap},"${rawStr}"`)
+  })
+  lines.push('')
+
+  const monthPlans = actionPlans.filter((p: any) => p.monthId === month.id)
+  lines.push('PLANOS DE AÇÃO')
+  lines.push('')
+  if (monthPlans.length === 0) {
+    lines.push('Nenhum plano de ação cadastrado para este mês.')
+  } else {
+    lines.push('KPI,Descrição,Responsável,Prazo,Status')
+    monthPlans.forEach((p: any) => {
+      const kpi = kpis.find((k) => k.id === p.kpiId)
+      lines.push(
+        `"${kpi?.name || p.kpiId}","${String(p.description).replace(/"/g, '""')}","${p.responsible}","${p.dueDate || ''}","${p.status}"`,
+      )
+    })
+  }
+
+  const csvContent = lines.join('\n')
+  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `Relatorio_KPI_${month.mes}_${month.ano}.csv`
+  link.click()
+  URL.revokeObjectURL(url)
 }

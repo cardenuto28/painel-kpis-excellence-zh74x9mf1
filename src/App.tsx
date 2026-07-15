@@ -11,6 +11,7 @@ import KpiDetails from './pages/KpiDetails'
 import Admin from './pages/Admin'
 import Users from './pages/Users'
 import Import from './pages/Import'
+import Analytics from './pages/Analytics'
 import NotFound from './pages/NotFound'
 import Login from './pages/Login'
 import { AuthProvider, useAuth } from '@/hooks/use-auth'
@@ -45,6 +46,7 @@ const App = () => (
             }
           >
             <Route path="/" element={<Index />} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="/history" element={<History />} />
             <Route path="/action-plans" element={<ActionPlans />} />
             <Route path="/entry/:id?" element={<EntryForm />} />

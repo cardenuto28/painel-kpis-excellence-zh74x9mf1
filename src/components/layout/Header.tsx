@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Sidebar } from './Sidebar'
+import { AlertsDropdown } from '@/components/dashboard/AlertsDropdown'
 
 export function Header() {
   const { role } = useDataStore()
@@ -28,6 +29,7 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-4">
+        <AlertsDropdown />
         <div className="flex items-center gap-3 bg-card px-4 py-1.5 rounded-full border border-border">
           <User className="w-4 h-4 text-muted-foreground" />
           <span className="text-sm font-medium">{role}</span>

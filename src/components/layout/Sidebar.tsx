@@ -1,101 +1,77 @@
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation, Link } from 'react-router-dom'
 import {
   LayoutDashboard,
-  History,
+  TrendingUp,
+  History as HistoryIcon,
   Target,
-  PlusCircle,
+  ListChecks,
+  Upload,
   Settings,
-  ListTree,
-  UserCog,
+  Users,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import useDataStore from '@/stores/use-data-store'
-import logoUrl from '@/assets/bmweuromotorsjundiaibranco1-af726.png'
+import { cn } from '@/lib/utils'
+import logo from '@/assets/bmweuromotorsjundiaibranco1-af726.png'
+
+interface NavItem {
+  to: string
+  label: string
+  icon: typeof LayoutDashboard
+}
+
+const navItems: NavItem[] = [
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/analytics', label: 'Analytics', icon: TrendingUp },
+  { to: '/history', label: 'Histórico', icon: HistoryIcon },
+  { to: '/action-plans', label: 'Planos de Ação', icon: Target },
+  { to: '/kpi-details', label: 'Detalhes de KPIs', icon: ListChecks },
+  { to: '/import', label: 'Importar Dados', icon: Upload },
+]
+
+const adminItems: NavItem[] = [
+  { to: '/admin', label: 'Administração', icon: Settings },
+  { to: '/admin/users', label: 'Usuários', icon: Users },
+]
 
 export function Sidebar() {
-  const { pathname } = useLocation()
   const { role } = useDataStore()
+  const location = useLocation()
+  const isAdmin = role === 'Admin'
 
-  const links = [
-    { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/kpi-details', label: 'Detalhes KPIs', icon: ListTree },
-    { href: '/history', label: 'Histórico', icon: History },
-    { href: '/action-plans', label: 'Planos de Ação', icon: Target },
-  ]
+  const renderItem = (item: NavItem) => {
+    const isActive =
+      item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to)
+    return (
+      <Link
+        key={item.to}
+        to={item.to}
+        className={cn(
+          'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+          isActive
+            ? 'bg-primary text-primary-foreground'
+            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+        )}
+      >
+        <item.icon className="w-4 h-4 flex-shrink-0" />
+        {item.label}
+      </Link>
+    )
+  }
 
   return (
-    <aside className="w-64 border-r border-border bg-card hidden md:flex flex-col z-20 shadow-elevation">
-      <div className="h-28 flex flex-col justify-center items-center px-6 border-b border-border/50 bg-black pt-4">
-        <img
-          src={logoUrl}
-          alt="Euro Motors"
-          className="w-full h-auto object-contain max-h-12 pointer-events-none"
-        />
-        <div className="text-[10px] text-white uppercase tracking-[0.2em] mt-3 font-display font-medium">
-          Excellence Club
-        </div>
+    <aside className="flex flex-col w-64 border-r border-border bg-card h-full">
+      <div className="h-20 flex items-center justify-center border-b border-border px-4 flex-shrink-0">
+        <img src={logo} alt="Euro Motors Jundiaí" className="h-10 object-contain" />
       </div>
-      <nav className="flex-1 p-4 space-y-1">
-        {links.map((l) => (
-          <Link
-            key={l.href}
-            to={l.href}
-            className={cn(
-              'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
-              pathname === l.href
-                ? 'bg-primary/10 text-primary font-medium'
-                : 'text-muted-foreground hover:bg-secondary/10 hover:text-foreground',
-            )}
-          >
-            <l.icon className="w-5 h-5" />
-            <span>{l.label}</span>
-          </Link>
-        ))}
-
-        {(role === 'Editor' || role === 'Admin') && (
-          <div className="pt-6 mt-6 border-t border-border/50">
-            <Link
-              to="/entry"
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
-                pathname.startsWith('/entry')
-                  ? 'bg-primary text-primary-foreground font-medium shadow-md'
-                  : 'text-primary hover:bg-primary/10 font-medium',
-              )}
-            >
-              <PlusCircle className="w-5 h-5" />
-              <span>Novo Lançamento</span>
-            </Link>
-          </div>
-        )}
-
-        {role === 'Admin' && (
-          <div className="pt-2 space-y-1">
-            <Link
-              to="/admin"
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
-                pathname === '/admin'
-                  ? 'bg-muted text-foreground font-medium'
-                  : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
-              )}
-            >
-              <Settings className="w-5 h-5" />
-              <span>Admin KPIs</span>
-            </Link>
-            <Link
-              to="/admin/users"
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
-                pathname === '/admin/users'
-                  ? 'bg-muted text-foreground font-medium'
-                  : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
-              )}
-            >
-              <UserCog className="w-5 h-5" />
-              <span>Usuários</span>
-            </Link>
-          </div>
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+        {navItems.map(renderItem)}
+        {isAdmin && (
+          <>
+            <div className="pt-4 pb-2 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Administração
+            </div>
+            {adminItems.map(renderItem)}
+          </>
         )}
       </nav>
     </aside>
