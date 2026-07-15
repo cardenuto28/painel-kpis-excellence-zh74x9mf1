@@ -12,6 +12,16 @@ import {
 } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   Table,
   TableBody,
   TableCell,
@@ -21,17 +31,21 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import useDataStore from '@/stores/use-data-store'
-import { getUsers, createUser, updateUserRole } from '@/services/users'
+import { getUsers, createUser, updateUserRole, deleteUser } from '@/services/users'
 import { useRealtime } from '@/hooks/use-realtime'
-import { Plus, Users as UsersIcon, Mail } from 'lucide-react'
+import { Plus, Users as UsersIcon, Mail, Trash2, Info } from 'lucide-react'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
+
+const DEFAULT_PASSWORD = 'eurojundiai'
 
 export default function Users() {
   const { role } = useDataStore()
   const [users, setUsers] = useState<any[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null)
+  const [selectedRole, setSelectedRole] = useState('Visualizador')
   const { register, handleSubmit, reset } = useForm()
 
   const loadUsers = useCallback(async () => {
@@ -57,10 +71,11 @@ export default function Users() {
   const onSubmit = async (data: any) => {
     setSubmitting(true)
     try {
-      await createUser(data.email, data.password, data.name || '', 'Visualizador')
+      await createUser(data.email, DEFAULT_PASSWORD, data.name || '', selectedRole)
       toast.success('Usuário criado com sucesso.')
       setIsDialogOpen(false)
       reset()
+      setSelectedRole('Visualizador')
       await loadUsers()
     } catch {
       toast.error('Erro ao criar usuário. Verifique se o email já não está cadastrado.')
@@ -79,6 +94,18 @@ export default function Users() {
     }
   }
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    try {
+      await deleteUser(deleteTarget.id)
+      toast.success('Usuário excluído com sucesso.')
+      setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id))
+    } catch {
+      toast.error('Erro ao excluir usuário.')
+    }
+    setDeleteTarget(null)
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -91,6 +118,7 @@ export default function Users() {
         <Button
           onClick={() => {
             reset()
+            setSelectedRole('Visualizador')
             setIsDialogOpen(true)
           }}
           className="gap-2"
@@ -107,12 +135,13 @@ export default function Users() {
                 <TableHead>Nome</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead className="w-[180px]">Role</TableHead>
+                <TableHead className="w-[60px] text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                     Nenhum usuário cadastrado.
                   </TableCell>
                 </TableRow>
@@ -136,6 +165,21 @@ export default function Users() {
                           <SelectItem value="Visualizador">Visualizador</SelectItem>
                         </SelectContent>
                       </Select>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 hover:bg-destructive/20 hover:text-destructive"
+                        onClick={() =>
+                          setDeleteTarget({
+                            id: u.id,
+                            label: u.name || u.email,
+                          })
+                        }
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
@@ -164,19 +208,27 @@ export default function Users() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Senha Temporária</Label>
-              <Input
-                type="password"
-                {...register('password', { required: true, minLength: 8 })}
-                placeholder="Mínimo 8 caracteres"
-              />
+              <Label>Role</Label>
+              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Admin">Admin</SelectItem>
+                  <SelectItem value="Editor">Editor</SelectItem>
+                  <SelectItem value="Visualizador">Visualizador</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div className="rounded-lg bg-muted/30 p-3 text-xs text-muted-foreground">
-              O usuário será criado com role{' '}
-              <Badge variant="outline" className="ml-1">
-                Visualizador
-              </Badge>{' '}
-              por padrão.
+            <div className="rounded-lg bg-muted/30 p-3 text-xs text-muted-foreground flex items-start gap-2">
+              <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <div>
+                A senha padrão será{' '}
+                <Badge variant="outline" className="ml-1 font-mono">
+                  {DEFAULT_PASSWORD}
+                </Badge>
+                . O usuário deverá alterá-la no primeiro acesso.
+              </div>
             </div>
             <div className="pt-4 flex justify-end gap-3">
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
@@ -189,6 +241,27 @@ export default function Users() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o usuário {deleteTarget?.label}? Esta ação não pode ser
+              desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDelete}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

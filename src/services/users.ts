@@ -41,3 +41,7 @@ export async function createUser(
 export async function updateUserRole(id: string, role: string): Promise<void> {
   await pb.collection('users').update(id, { role })
 }
+
+export async function deleteUser(id: string): Promise<void> {
+  await pb.collection('users').delete(id)
+}
