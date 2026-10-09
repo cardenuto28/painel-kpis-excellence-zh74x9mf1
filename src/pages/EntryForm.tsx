@@ -89,7 +89,7 @@ export default function EntryForm() {
   )
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: existingData
       ? {
           ...existingData,
@@ -286,11 +286,11 @@ export default function EntryForm() {
                     </FormControl>
                     {sumMismatch ? (
                       <p className="text-xs text-destructive font-medium">
-                        Soma dos KPIs: {computedSum} pts — divergente!
+                        Soma dos KPIs: {Number(computedSum)} pts — divergente!
                       </p>
                     ) : (
                       <p className="text-xs text-muted-foreground">
-                        Soma dos KPIs: {computedSum} pts
+                        Soma dos KPIs: {Number(computedSum)} pts
                       </p>
                     )}
                     <FormMessage />

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/hooks/use-auth'
-import logoUrl from '@/assets/bmweuromotorsjundiaibranco1-af726.png'
+import logoUrl from '@/assets/image-f74b6.png'
 import { toast } from 'sonner'
 
 export default function Login() {
@@ -43,8 +43,8 @@ export default function Login() {
           <div className="w-full h-24 bg-black rounded-lg p-4 flex flex-col items-center justify-center">
             <img
               src={logoUrl}
-              alt="Euro Motors"
-              className="w-full h-auto object-contain max-h-12 pointer-events-none"
+              alt="PGPrime"
+              className="w-full h-auto object-contain max-h-10 pointer-events-none invert brightness-200"
             />
             <div className="text-[10px] text-white uppercase tracking-[0.2em] mt-2 font-display font-medium">
               Excellence Club
