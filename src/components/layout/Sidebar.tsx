@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import useDataStore from '@/stores/use-data-store'
 import { cn } from '@/lib/utils'
-import logo from '@/assets/bmweuromotorsjundiaibranco1-af726.png'
+import logo from '@/assets/image-f74b6.png'
 
 interface NavItem {
   to: string
@@ -61,7 +61,11 @@ export function Sidebar() {
   return (
     <aside className="flex flex-col w-64 border-r border-border bg-card h-full">
       <div className="h-20 flex items-center justify-center border-b border-border px-4 flex-shrink-0">
-        <img src={logo} alt="Euro Motors Jundiaí" className="h-10 object-contain" />
+        <img
+          src={logo}
+          alt="PG Prime"
+          className="h-9 max-w-[85%] object-contain invert brightness-200"
+        />
       </div>
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {navItems.map(renderItem)}

@@ -43,8 +43,8 @@ export default function Login() {
           <div className="w-full h-24 bg-black rounded-lg p-4 flex flex-col items-center justify-center">
             <img
               src={logoUrl}
-              alt="PGPrime"
-              className="w-full h-auto object-contain max-h-10 pointer-events-none invert brightness-200"
+              alt="PG Prime"
+              className="w-full h-auto object-contain max-h-12 pointer-events-none invert brightness-200"
             />
             <div className="text-[10px] text-white uppercase tracking-[0.2em] mt-2 font-display font-medium">
               Excellence Club
