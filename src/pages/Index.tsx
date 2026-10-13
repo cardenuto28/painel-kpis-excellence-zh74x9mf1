@@ -145,7 +145,7 @@ export default function Index() {
                   {currentMonth.totalScore}
                 </div>
                 <div className="text-xs text-muted-foreground uppercase tracking-wider">
-                  Euro Motors
+                  &nbsp;PG PRIME.
                 </div>
               </div>
               <span className="text-xl text-muted-foreground font-medium">vs</span>
