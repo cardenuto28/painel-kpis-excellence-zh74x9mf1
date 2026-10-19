@@ -45,3 +45,13 @@ export async function updateUserRole(id: string, role: string): Promise<void> {
 export async function deleteUser(id: string): Promise<void> {
   await pb.collection('users').delete(id)
 }
+
+export async function resetUserPassword(userId: string, newPassword: string): Promise<void> {
+  await pb.send('/backend/v1/admin/reset-password', {
+    method: 'POST',
+    body: {
+      userId,
+      password: newPassword,
+    },
+  })
+}
