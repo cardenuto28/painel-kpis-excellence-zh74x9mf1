@@ -23,7 +23,10 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    const { error } = isSignUp ? await signUp(email, password) : await signIn(email, password)
+    const cleanEmail = email.trim()
+    const { error } = isSignUp
+      ? await signUp(cleanEmail, password)
+      : await signIn(cleanEmail, password)
     if (error) {
       toast.error(
         isSignUp
