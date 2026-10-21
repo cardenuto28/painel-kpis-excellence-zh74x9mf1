@@ -19,6 +19,8 @@ import { NpsCaseDialog } from '@/components/nps/NpsCaseDialog'
 import { NpsActionPlanDialog } from '@/components/nps/NpsActionPlanDialog'
 import { NpsImportDialog } from '@/components/nps/NpsImportDialog'
 import { NpsAiAnalystDialog } from '@/components/nps/NpsAiAnalystDialog'
+import { NpsCaseHistoryModal } from '@/components/nps/NpsCaseHistoryModal'
+import { getSimilarCases, type SimilarCaseResult } from '@/services/nps'
 import { toast } from 'sonner'
 import { Plus, Upload, Bot, Search, Filter, Sparkles, RefreshCw, X } from 'lucide-react'
 import type { NpsCase, NpsWeeklyStat, NpsBrand, NpsDepartment, NpsKpiSummary } from '@/types/nps'
@@ -45,6 +47,13 @@ export default function NpsCasesPage() {
   const [selectedCaseForPlans, setSelectedCaseForPlans] = useState<NpsCase | null>(null)
   const [isImportModalOpen, setIsImportModalOpen] = useState(false)
   const [isAiModalOpen, setIsAiModalOpen] = useState(false)
+
+  // Modal de Histórico Imediato (Detratores e Neutros)
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
+  const [savedCaseForHistory, setSavedCaseForHistory] = useState<NpsCase | null>(null)
+  const [historySimilarCases, setHistorySimilarCases] = useState<SimilarCaseResult[]>([])
+  const [isLoadingHistorySimilar, setIsLoadingHistorySimilar] = useState(false)
+  const [isNewSavedCase, setIsNewSavedCase] = useState(false)
 
   // Carregar dados
   const loadAllData = useCallback(async () => {
@@ -205,6 +214,36 @@ export default function NpsCasesPage() {
     setSearchQuery('')
     setSelectedBrand('all')
     setSelectedDept('all')
+  }
+
+  // Handler chamado quando um caso é salvo (criação ou edição)
+  const handleCaseSaved = async (savedCase?: NpsCase, isNew: boolean = false) => {
+    loadAllData()
+    if (!savedCase) return
+
+    // Se for caso crítico (detrator nota <= 6 ou neutro nota 7-8)
+    const note = Number(savedCase.nota ?? 10)
+    if (note <= 8) {
+      setSavedCaseForHistory(savedCase)
+      setIsNewSavedCase(isNew)
+      setIsHistoryModalOpen(true)
+      setIsLoadingHistorySimilar(true)
+
+      const textToSearch =
+        `${savedCase.comentario || ''} ${savedCase.observacao_insatisfacao || ''}`.trim()
+      try {
+        const results = await getSimilarCases({
+          caseId: savedCase.id,
+          text: textToSearch || savedCase.departamento,
+          departamento: savedCase.departamento,
+        })
+        setHistorySimilarCases(results)
+      } catch (err) {
+        setHistorySimilarCases([])
+      } finally {
+        setIsLoadingHistorySimilar(false)
+      }
+    }
   }
 
   return (
@@ -372,7 +411,18 @@ export default function NpsCasesPage() {
         open={isCaseModalOpen}
         onOpenChange={setIsCaseModalOpen}
         initialCase={selectedCaseForEdit}
-        onSaved={loadAllData}
+        onSaved={handleCaseSaved}
+      />
+
+      {/* 1.1 Modal de Histórico Imediato / Padrão Recorrente pós salvamento */}
+      <NpsCaseHistoryModal
+        open={isHistoryModalOpen}
+        onOpenChange={setIsHistoryModalOpen}
+        savedCase={savedCaseForHistory}
+        similarCases={historySimilarCases}
+        isLoadingSimilar={isLoadingHistorySimilar}
+        isNewCase={isNewSavedCase}
+        onOpenActionPlan={handleOpenPlans}
       />
 
       {/* 2. Planos de Ação e Pattern Alert (IA) */}

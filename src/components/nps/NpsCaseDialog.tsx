@@ -20,7 +20,7 @@ interface NpsCaseDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   initialCase?: NpsCase | null
-  onSaved: () => void
+  onSaved: (savedCase?: NpsCase, isNew?: boolean) => void
 }
 
 export function NpsCaseDialog({ open, onOpenChange, initialCase, onSaved }: NpsCaseDialogProps) {
@@ -89,15 +89,17 @@ export function NpsCaseDialog({ open, onOpenChange, initialCase, onSaved }: NpsC
         observacao_insatisfacao: observacao.trim(),
       }
 
+      let resultCase: NpsCase
+      const isNew = !initialCase?.id
       if (initialCase?.id) {
-        await updateNpsCase(initialCase.id, payload)
+        resultCase = await updateNpsCase(initialCase.id, payload)
         toast.success('Caso NPS atualizado com sucesso!')
       } else {
-        await createNpsCase(payload)
+        resultCase = await createNpsCase(payload)
         toast.success('Novo caso NPS cadastrado e vetorizado!')
       }
       onOpenChange(false)
-      onSaved()
+      onSaved(resultCase, isNew)
     } catch (err: any) {
       toast.error(err?.message || 'Erro ao salvar caso NPS')
     } finally {

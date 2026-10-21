@@ -125,8 +125,11 @@ export interface SimilarCaseResult {
   id: string
   cliente?: string
   marca?: string
+  veiculo?: string
   departamento?: string
   comentario?: string
+  observacao_insatisfacao?: string
+  data?: string
   nota?: number
   status?: string
   _distance?: number

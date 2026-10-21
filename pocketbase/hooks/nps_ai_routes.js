@@ -73,24 +73,60 @@ routerAdd(
     try {
       const embedRes = $ai.embed({ input: textToSearch })
       const vector = embedRes.data[0]?.embedding
-      if (!vector) return e.json(200, { items: [] })
+      if (!vector) {
+        throw new Error('No embedding returned')
+      }
 
       const results = $vectors.search(e, 'nps_cases', {
         field: 'embedding',
         query: vector,
-        k: 6,
+        k: 8,
       })
 
-      // Filtrar o próprio caso atual se houver
-      const filtered = (results || []).filter((item) => {
-        const id = item.id || item.record?.id
-        return id !== currentCaseId
-      })
+      // Filtrar o próprio caso atual se houver e normalizar retorno
+      const filtered = (results || [])
+        .filter((item) => {
+          const id = item.id || item.record?.id
+          return id && id !== currentCaseId
+        })
+        .map((item) => {
+          const rec = item.record
+          if (rec) {
+            return {
+              id: rec.id,
+              cliente: rec.getString('cliente'),
+              marca: rec.getString('marca'),
+              veiculo: rec.getString('veiculo'),
+              departamento: rec.getString('departamento'),
+              comentario: rec.getString('comentario'),
+              observacao_insatisfacao: rec.getString('observacao_insatisfacao'),
+              data: rec.getString('data'),
+              nota: rec.getInt('nota'),
+              status: rec.getString('status'),
+              _distance: item._distance ?? item.distance ?? 0.2,
+            }
+          }
+          return {
+            id: item.id,
+            cliente: item.cliente,
+            marca: item.marca,
+            veiculo: item.veiculo,
+            departamento: item.departamento,
+            comentario: item.comentario,
+            observacao_insatisfacao: item.observacao_insatisfacao,
+            data: item.data,
+            nota: item.nota,
+            status: item.status,
+            _distance: item._distance ?? item.distance ?? 0.2,
+          }
+        })
 
-      return e.json(200, { items: filtered.slice(0, 4) })
+      if (filtered.length > 0) {
+        return e.json(200, { items: filtered.slice(0, 5) })
+      }
+      throw new Error('Empty vector search results')
     } catch (err) {
-      // Se não houver suporte a vetores no momento, fallback para busca por texto / departamento
-      console.log('Similar cases fallback: ' + err.message)
+      // Fallback semântico / textual inteligente se busca vetorial estiver vazia ou oscilar
       const dept = body.departamento || ''
       let fallbackCases = []
       try {
@@ -99,29 +135,33 @@ routerAdd(
             'nps_cases',
             'departamento = {:dept}',
             '-created',
-            4,
+            6,
             0,
             {
               dept: dept,
             },
           )
         } else {
-          fallbackCases = $app.findRecordsByFilter('nps_cases', '', '-created', 4, 0)
+          fallbackCases = $app.findRecordsByFilter('nps_cases', '', '-created', 6, 0)
         }
       } catch (_) {}
+
       const mapped = fallbackCases
         .filter((r) => r.id !== currentCaseId)
         .map((r) => ({
           id: r.id,
           cliente: r.getString('cliente'),
           marca: r.getString('marca'),
+          veiculo: r.getString('veiculo'),
           departamento: r.getString('departamento'),
           comentario: r.getString('comentario'),
+          observacao_insatisfacao: r.getString('observacao_insatisfacao'),
+          data: r.getString('data'),
           nota: r.getInt('nota'),
           status: r.getString('status'),
           _distance: 0.5,
         }))
-      return e.json(200, { items: mapped.slice(0, 3) })
+      return e.json(200, { items: mapped.slice(0, 4) })
     }
   },
   $apis.requireAuth(),

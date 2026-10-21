@@ -34,8 +34,8 @@ export function NpsDetailPanel({
     'all_critical',
   )
 
-  // Filtra casos críticos (detratores ≤ 6 ou com pendência)
-  const criticalCases = cases.filter((c) => c.status !== 'Resolvido' || c.nota <= 6)
+  // Filtra casos críticos (detratores ≤ 6, neutros 7-8 ou com pendência)
+  const criticalCases = cases.filter((c) => c.status !== 'Resolvido' || c.nota <= 8)
 
   const casesWithoutPlan = criticalCases.filter((c) => (plansCountMap[c.id] || 0) === 0)
   const pendingCases = criticalCases.filter((c) => c.status !== 'Resolvido')

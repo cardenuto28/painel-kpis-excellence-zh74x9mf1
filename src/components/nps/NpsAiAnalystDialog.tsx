@@ -8,6 +8,7 @@ import pb from '@/lib/pocketbase/client'
 import { getAgentConversations, getAgentMessages } from '@/services/nps'
 import { toast } from 'sonner'
 import { Bot, Send, Sparkles, User, History, Plus, RefreshCw, ExternalLink } from 'lucide-react'
+import { MarkdownRenderer } from '@/components/nps/MarkdownRenderer'
 
 interface NpsAiAnalystDialogProps {
   open: boolean
@@ -260,13 +261,17 @@ export function NpsAiAnalystDialog({ open, onOpenChange }: NpsAiAnalystDialogPro
                 </div>
 
                 <div
-                  className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed whitespace-pre-wrap ${
+                  className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                     isUser
-                      ? 'bg-primary text-primary-foreground rounded-tr-none'
-                      : 'bg-card border border-border rounded-tl-none text-foreground shadow-sm'
+                      ? 'bg-primary text-primary-foreground rounded-tr-none whitespace-pre-wrap'
+                      : 'bg-card border border-border rounded-tl-none text-foreground shadow-sm overflow-hidden'
                   }`}
                 >
-                  {m.content || (
+                  {isUser ? (
+                    m.content
+                  ) : m.content ? (
+                    <MarkdownRenderer content={m.content} />
+                  ) : (
                     <span className="flex items-center gap-1.5 text-muted-foreground italic text-xs">
                       <Sparkles className="w-3.5 h-3.5 animate-spin text-primary" />
                       Analisando os dados da PG Prime...
