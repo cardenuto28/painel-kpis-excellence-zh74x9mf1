@@ -223,7 +223,7 @@ export default function Index() {
                 <ResponsiveContainer width="100%" height="100%">
                   <ChartContainer
                     config={{
-                      euroMotors: { label: 'Euro Motors', color: 'hsl(var(--primary))' },
+                      euroMotors: { label: 'PG Prime', color: 'hsl(var(--primary))' },
                       topDealer: { label: 'Top Dealer', color: 'hsl(var(--secondary))' },
                     }}
                   >
@@ -256,7 +256,7 @@ export default function Index() {
                       <Legend verticalAlign="top" height={36} iconType="circle" />
                       <Line
                         type="monotone"
-                        name="Euro Motors"
+                        name="PG Prime"
                         dataKey="euroMotors"
                         stroke="var(--color-euroMotors)"
                         strokeWidth={3}

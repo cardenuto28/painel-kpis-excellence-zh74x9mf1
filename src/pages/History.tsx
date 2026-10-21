@@ -73,7 +73,7 @@ export default function History() {
               <TableRow>
                 <TableHead>Período</TableHead>
                 <TableHead>Ranking</TableHead>
-                <TableHead className="text-right">Score Euro Motors</TableHead>
+                <TableHead className="text-right">Score PG Prime</TableHead>
                 <TableHead className="text-right">Score Top Dealer</TableHead>
                 <TableHead>Gap</TableHead>
                 {(role === 'Editor' || role === 'Admin') && (

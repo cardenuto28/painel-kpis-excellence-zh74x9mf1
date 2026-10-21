@@ -100,7 +100,7 @@ export default function Import() {
       return
     }
     if (!euroText.trim()) {
-      toast.error('Cole os valores da Euro Motors')
+      toast.error('Cole os valores da PG Prime')
       return
     }
     const rawValues = parseLine(euroText, kpis)
@@ -182,7 +182,7 @@ export default function Import() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4" /> Euro Motors
+              <FileSpreadsheet className="w-4 h-4" /> PG Prime
             </CardTitle>
           </CardHeader>
           <CardContent>

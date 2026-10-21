@@ -67,7 +67,7 @@ export default function Analytics() {
   )
 
   const lineConfig: ChartConfig = {
-    totalScore: { label: 'Score Euro Motors', color: 'hsl(var(--primary))' },
+    totalScore: { label: 'Score PG Prime', color: 'hsl(var(--primary))' },
     topDealer: { label: 'Top Dealer', color: 'hsl(var(--secondary))' },
   }
 
@@ -112,7 +112,7 @@ export default function Analytics() {
             <TrendingUp className="w-5 h-5 text-primary" />
             Evolução do Score Total
           </CardTitle>
-          <CardDescription>Score Euro Motors vs Top Dealer — {selectedYear}</CardDescription>
+          <CardDescription>Score PG Prime vs Top Dealer — {selectedYear}</CardDescription>
         </CardHeader>
         <CardContent>
           {noData ? (

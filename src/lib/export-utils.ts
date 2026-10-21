@@ -5,7 +5,7 @@ export function exportMonthRecordsCSV(months: any[], kpis: KpiDef[]): void {
     'Mês',
     'Ano',
     'Ranking',
-    'Score Euro Motors',
+    'Score PG Prime',
     'Score Top Dealer',
     'Gap',
     ...kpis.map((k) => k.name),
@@ -94,7 +94,7 @@ export function exportMonthPDF(month: any, kpis: KpiDef[]): void {
   <div style="margin-bottom:32px;">
     <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1f2937;padding-bottom:16px;">
       <div>
-        <h1 style="font-size:24px;font-weight:700;">Euro Motors Jundiaí</h1>
+        <h1 style="font-size:24px;font-weight:700;">PG Prime</h1>
         <p style="font-size:14px;color:#6b7280;margin-top:4px;">Excellence Club BMW · Relatório de Performance</p>
       </div>
       <div style="text-align:right;">
@@ -106,7 +106,7 @@ export function exportMonthPDF(month: any, kpis: KpiDef[]): void {
 
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px;">
     <div style="background:#f9fafb;border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
-      <p style="font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Score Euro Motors</p>
+      <p style="font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Score PG Prime</p>
       <p style="font-size:36px;font-weight:700;color:#3b82f6;">${month.totalScore}</p>
     </div>
     <div style="background:#f9fafb;border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
@@ -151,7 +151,7 @@ export function exportMonthPDF(month: any, kpis: KpiDef[]): void {
 
   <div style="margin-top:48px;padding-top:16px;border-top:1px solid #e5e7eb;">
     <p style="font-size:11px;color:#9ca3af;text-align:center;">
-      Euro Motors Jundiaí · Excellence Club BMW · Documento gerado automaticamente
+      PG Prime · Excellence Club BMW · Documento gerado automaticamente
     </p>
   </div>
 </body>
