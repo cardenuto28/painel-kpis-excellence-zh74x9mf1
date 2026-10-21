@@ -6,6 +6,7 @@ import Layout from './components/Layout'
 import Index from './pages/Index'
 import History from './pages/History'
 import ActionPlans from './pages/ActionPlans'
+import NpsCasesPage from './pages/NpsCases'
 import EntryForm from './pages/EntryForm'
 import KpiDetails from './pages/KpiDetails'
 import Admin from './pages/Admin'
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/history" element={<History />} />
             <Route path="/action-plans" element={<ActionPlans />} />
+            <Route path="/nps-casos" element={<NpsCasesPage />} />
             <Route path="/entry/:id?" element={<EntryForm />} />
             <Route path="/kpi-details" element={<KpiDetails />} />
             <Route path="/admin" element={<Admin />} />

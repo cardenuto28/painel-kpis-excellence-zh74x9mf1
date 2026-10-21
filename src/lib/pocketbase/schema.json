@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-21T18:00:04.773Z",
+  "generatedAt": "2026-10-21T21:58:13.525Z",
   "collections": [
     {
       "name": "users",
@@ -288,6 +288,226 @@
         }
       ],
       "indexes": ["CREATE INDEX idx_action_plans_monthId ON action_plans (monthId)"]
+    },
+    {
+      "name": "nps_cases",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.role = 'Admin' || @request.auth.role = 'Editor'",
+        "update": "@request.auth.role = 'Admin' || @request.auth.role = 'Editor'",
+        "delete": "@request.auth.role = 'Admin'"
+      },
+      "fields": [
+        {
+          "name": "cliente",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "marca",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["BMW", "Motorrad"]
+        },
+        {
+          "name": "veiculo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data",
+          "type": "date",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "departamento",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["Vendas", "Pós-Vendas"]
+        },
+        {
+          "name": "nota",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "comentario",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["Pendente", "Em Tratamento", "Resolvido"]
+        },
+        {
+          "name": "responsavel",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "observacao_insatisfacao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "embedding",
+          "type": "vector",
+          "required": false,
+          "system": false,
+          "vectorDimensions": 1536,
+          "vectorDistance": "cosine"
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_nps_cases_status ON nps_cases (status)",
+        "CREATE INDEX idx_nps_cases_data ON nps_cases (data)",
+        "CREATE INDEX idx_nps_cases_departamento ON nps_cases (departamento)",
+        "CREATE INDEX idx_nps_cases_marca ON nps_cases (marca)"
+      ]
+    },
+    {
+      "name": "nps_action_plans",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.role = 'Admin' || @request.auth.role = 'Editor'",
+        "update": "@request.auth.role = 'Admin' || @request.auth.role = 'Editor'",
+        "delete": "@request.auth.role = 'Admin' || @request.auth.role = 'Editor'"
+      },
+      "fields": [
+        {
+          "name": "nps_case_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "nps_cases"
+        },
+        {
+          "name": "descricao",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "prazo",
+          "type": "date",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["Pendente", "Concluído"]
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE INDEX idx_nps_action_plans_case ON nps_action_plans (nps_case_id)"]
+    },
+    {
+      "name": "nps_weekly_stats",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.role = 'Admin' || @request.auth.role = 'Editor'",
+        "update": "@request.auth.role = 'Admin' || @request.auth.role = 'Editor'",
+        "delete": "@request.auth.role = 'Admin'"
+      },
+      "fields": [
+        {
+          "name": "brand",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["BMW Auto", "BMW Motorrad"]
+        },
+        {
+          "name": "department",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["Vendas", "Pós-Vendas"]
+        },
+        {
+          "name": "nps_score",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "response_rate",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "update_date",
+          "type": "date",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_nps_weekly_stats_lookup ON nps_weekly_stats (brand, department, update_date)"
+      ]
     }
   ]
 }

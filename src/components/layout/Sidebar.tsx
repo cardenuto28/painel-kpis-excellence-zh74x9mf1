@@ -8,6 +8,7 @@ import {
   Upload,
   Settings,
   Users,
+  ShieldAlert,
 } from 'lucide-react'
 import useDataStore from '@/stores/use-data-store'
 import { cn } from '@/lib/utils'
@@ -21,6 +22,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/nps-casos', label: 'Casos NPS Críticos', icon: ShieldAlert },
   { to: '/analytics', label: 'Analytics', icon: TrendingUp },
   { to: '/history', label: 'Histórico', icon: HistoryIcon },
   { to: '/action-plans', label: 'Planos de Ação', icon: Target },

@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,12 +18,97 @@ import {
 import useDataStore from '@/stores/use-data-store'
 import { MONTH_NAMES } from '@/lib/kpi-definitions'
 import { Gauge } from '@/components/dashboard/Gauge'
-import { AlertCircle, Target, TrendingDown, TrendingUp, Clock, FileDown } from 'lucide-react'
+import {
+  AlertCircle,
+  Target,
+  TrendingDown,
+  TrendingUp,
+  Clock,
+  FileDown,
+  ShieldAlert,
+  ChevronRight,
+} from 'lucide-react'
 import { exportMonthPDF } from '@/lib/export-utils'
 import { toast } from 'sonner'
+import { NpsWeeklyCards } from '@/components/nps/NpsWeeklyCards'
+import { NpsKpiCards } from '@/components/nps/NpsKpiCards'
+import { getLatestWeeklyStats, getNpsCases } from '@/services/nps'
+import { useRealtime } from '@/hooks/use-realtime'
+import type { NpsWeeklyStat, NpsCase, NpsKpiSummary, NpsDepartment } from '@/types/nps'
 
 export default function Index() {
-  const { months, kpis, actionPlans } = useDataStore()
+  const navigate = useNavigate()
+  const { months, kpis, actionPlans, role } = useDataStore()
+  const canEditWeekly = role === 'Admin' || role === 'Editor'
+
+  // Estados NPS no Dashboard
+  const [npsStats, setNpsStats] = useState<Record<string, NpsWeeklyStat>>({})
+  const [npsCases, setNpsCases] = useState<NpsCase[]>([])
+
+  const loadNpsDashboardData = async () => {
+    try {
+      const [stats, cases] = await Promise.all([
+        getLatestWeeklyStats().catch(() => ({})),
+        getNpsCases().catch(() => []),
+      ])
+      setNpsStats(stats)
+      setNpsCases(cases)
+    } catch {
+      /* intentionally ignored */
+    }
+  }
+
+  useEffect(() => {
+    loadNpsDashboardData()
+  }, [])
+
+  useRealtime('nps_weekly_stats', () => {
+    loadNpsDashboardData()
+  })
+  useRealtime('nps_cases', () => {
+    loadNpsDashboardData()
+  })
+
+  // KPIs NPS no Dashboard
+  const npsSummary = useMemo<NpsKpiSummary>(() => {
+    const totalCritical = npsCases.length
+    const detractorsCount = npsCases.filter((c) => c.nota <= 6).length
+    const resolvedCount = npsCases.filter((c) => c.status === 'Resolvido').length
+    const pendingCount = totalCritical - resolvedCount
+    const resolutionRate = totalCritical > 0 ? Math.round((resolvedCount / totalCritical) * 100) : 0
+
+    let totalResolutionDays = 0
+    let resolvedWithDates = 0
+    for (const c of npsCases) {
+      if (c.status === 'Resolvido') {
+        const start = new Date(c.data || c.created)
+        const end = new Date(c.updated || c.created)
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+          const diffDays = Math.max(
+            0,
+            Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)),
+          )
+          totalResolutionDays += diffDays
+          resolvedWithDates++
+        }
+      }
+    }
+    const avgResolutionDays =
+      resolvedWithDates > 0 ? Math.round(totalResolutionDays / resolvedWithDates) : 0
+
+    return {
+      totalCritical,
+      detractorsCount,
+      pendingCount,
+      resolvedCount,
+      resolutionRate,
+      avgResolutionDays,
+    }
+  }, [npsCases])
+
+  const handleNpsSegmentClick = () => {
+    navigate('/nps-casos')
+  }
 
   const sortedMonths = useMemo(() => {
     return [...months].sort((a, b) => {
@@ -464,6 +550,57 @@ export default function Index() {
           </div>
         </>
       )}
+
+      {/* SEÇÃO NPS (Net Promoter Score) PG Prime no Dashboard */}
+      <div className="pt-6 border-t border-border space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 className="text-xl font-display font-bold flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-destructive" />
+              Módulo NPS • Casos Críticos & Performance Semanal
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Monitoramento dos 4 segmentos e gestão ativa de clientes detratores (BMW Auto e
+              Motorrad)
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/nps-casos')}
+            className="gap-1.5 self-start sm:self-auto border-primary/40 text-primary hover:bg-primary/10"
+          >
+            Acessar Módulo NPS Completo
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* 4 Cards Semanais */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs uppercase font-semibold text-muted-foreground tracking-wider">
+              Performance NPS Semanal por Segmento
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Clique para detalhar no painel NPS
+            </span>
+          </div>
+          <NpsWeeklyCards
+            stats={npsStats}
+            canEdit={canEditWeekly}
+            onSegmentClick={handleNpsSegmentClick}
+            onStatsUpdated={loadNpsDashboardData}
+          />
+        </div>
+
+        {/* Indicadores NPS */}
+        <div className="space-y-2">
+          <span className="text-xs uppercase font-semibold text-muted-foreground tracking-wider">
+            Indicadores de Tratamento de Casos
+          </span>
+          <NpsKpiCards summary={npsSummary} onKpiClick={() => navigate('/nps-casos')} />
+        </div>
+      </div>
     </div>
   )
 }
