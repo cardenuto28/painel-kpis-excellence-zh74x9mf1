@@ -11,7 +11,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import useDataStore from '@/stores/use-data-store'
 import { useRealtime } from '@/hooks/use-realtime'
-import { getNpsCases, getLatestWeeklyStats, deleteNpsCase } from '@/services/nps'
+import { getNpsCases, getLatestWeeklyStats, deleteNpsCase, getNpsActionPlans } from '@/services/nps'
 import { NpsWeeklyCards } from '@/components/nps/NpsWeeklyCards'
 import { NpsKpiCards } from '@/components/nps/NpsKpiCards'
 import { NpsCaseTable } from '@/components/nps/NpsCaseTable'
@@ -29,6 +29,7 @@ export default function NpsCasesPage() {
 
   const [cases, setCases] = useState<NpsCase[]>([])
   const [weeklyStats, setWeeklyStats] = useState<Record<string, NpsWeeklyStat>>({})
+  const [plansCountMap, setPlansCountMap] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
 
   // Filtros
@@ -48,12 +49,22 @@ export default function NpsCasesPage() {
   // Carregar dados
   const loadAllData = useCallback(async () => {
     try {
-      const [casesData, statsData] = await Promise.all([
+      const [casesData, statsData, allPlans] = await Promise.all([
         getNpsCases().catch(() => []),
         getLatestWeeklyStats().catch(() => ({})),
+        getNpsActionPlans().catch(() => []),
       ])
       setCases(casesData)
       setWeeklyStats(statsData)
+
+      // Mapear contagem de planos por caso
+      const counts: Record<string, number> = {}
+      for (const p of allPlans) {
+        if (p.nps_case_id) {
+          counts[p.nps_case_id] = (counts[p.nps_case_id] || 0) + 1
+        }
+      }
+      setPlansCountMap(counts)
     } catch (err: any) {
       console.error('Erro ao carregar dados NPS:', err)
     } finally {
@@ -127,6 +138,11 @@ export default function NpsCasesPage() {
     const pendingCount = totalCritical - resolvedCount
     const resolutionRate = totalCritical > 0 ? Math.round((resolvedCount / totalCritical) * 100) : 0
 
+    // Casos sem planos
+    const withoutPlansCount = cases.filter(
+      (c) => c.status !== 'Resolvido' && (plansCountMap[c.id] || 0) === 0,
+    ).length
+
     // Cálculo do tempo médio de resolução (dias entre criação e update do caso resolvido)
     let totalResolutionDays = 0
     let resolvedWithDates = 0
@@ -154,8 +170,9 @@ export default function NpsCasesPage() {
       resolvedCount,
       resolutionRate,
       avgResolutionDays,
+      withoutPlansCount,
     }
-  }, [cases])
+  }, [cases, plansCountMap])
 
   // Contadores das abas
   const activeCount = useMemo(() => cases.filter((c) => c.status !== 'Resolvido').length, [cases])
@@ -345,6 +362,7 @@ export default function NpsCasesPage() {
           onOpenPlans={handleOpenPlans}
           onEditCase={handleEditCase}
           onDeleteCase={handleDeleteCase}
+          plansByCaseId={plansCountMap}
         />
       </section>
 

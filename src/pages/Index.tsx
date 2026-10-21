@@ -32,27 +32,43 @@ import { exportMonthPDF } from '@/lib/export-utils'
 import { toast } from 'sonner'
 import { NpsWeeklyCards } from '@/components/nps/NpsWeeklyCards'
 import { NpsKpiCards } from '@/components/nps/NpsKpiCards'
-import { getLatestWeeklyStats, getNpsCases } from '@/services/nps'
+import { NpsDetailPanel } from '@/components/nps/NpsDetailPanel'
+import { NpsActionPlanDialog } from '@/components/nps/NpsActionPlanDialog'
+import { getLatestWeeklyStats, getNpsCases, getNpsActionPlans } from '@/services/nps'
 import { useRealtime } from '@/hooks/use-realtime'
 import type { NpsWeeklyStat, NpsCase, NpsKpiSummary, NpsDepartment } from '@/types/nps'
 
 export default function Index() {
   const navigate = useNavigate()
   const { months, kpis, actionPlans, role } = useDataStore()
-  const canEditWeekly = role === 'Admin' || role === 'Editor'
+  const canManageNps = role === 'Admin' || role === 'Editor'
 
   // Estados NPS no Dashboard
   const [npsStats, setNpsStats] = useState<Record<string, NpsWeeklyStat>>({})
   const [npsCases, setNpsCases] = useState<NpsCase[]>([])
+  const [plansCountMap, setPlansCountMap] = useState<Record<string, number>>({})
+
+  // Estado para abrir o NpsActionPlanDialog direto na Dashboard
+  const [selectedCaseForPlans, setSelectedCaseForPlans] = useState<NpsCase | null>(null)
+  const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false)
 
   const loadNpsDashboardData = async () => {
     try {
-      const [stats, cases] = await Promise.all([
+      const [stats, cases, allPlans] = await Promise.all([
         getLatestWeeklyStats().catch(() => ({})),
         getNpsCases().catch(() => []),
+        getNpsActionPlans().catch(() => []),
       ])
       setNpsStats(stats)
       setNpsCases(cases)
+
+      const counts: Record<string, number> = {}
+      for (const p of allPlans) {
+        if (p.nps_case_id) {
+          counts[p.nps_case_id] = (counts[p.nps_case_id] || 0) + 1
+        }
+      }
+      setPlansCountMap(counts)
     } catch {
       /* intentionally ignored */
     }
@@ -68,6 +84,9 @@ export default function Index() {
   useRealtime('nps_cases', () => {
     loadNpsDashboardData()
   })
+  useRealtime('nps_action_plans', () => {
+    loadNpsDashboardData()
+  })
 
   // KPIs NPS no Dashboard
   const npsSummary = useMemo<NpsKpiSummary>(() => {
@@ -76,6 +95,9 @@ export default function Index() {
     const resolvedCount = npsCases.filter((c) => c.status === 'Resolvido').length
     const pendingCount = totalCritical - resolvedCount
     const resolutionRate = totalCritical > 0 ? Math.round((resolvedCount / totalCritical) * 100) : 0
+    const withoutPlansCount = npsCases.filter(
+      (c) => c.status !== 'Resolvido' && (plansCountMap[c.id] || 0) === 0,
+    ).length
 
     let totalResolutionDays = 0
     let resolvedWithDates = 0
@@ -103,10 +125,35 @@ export default function Index() {
       resolvedCount,
       resolutionRate,
       avgResolutionDays,
+      withoutPlansCount,
     }
-  }, [npsCases])
+  }, [npsCases, plansCountMap])
 
   const handleNpsSegmentClick = () => {
+    navigate('/nps-casos')
+  }
+
+  // Abrir direto o diálogo de plano de ação
+  const handleOpenActionPlan = (npsCase: NpsCase) => {
+    setSelectedCaseForPlans(npsCase)
+    setIsPlanDialogOpen(true)
+  }
+
+  // Ao clicar em casos críticos nos KPIs, se houver um caso crítico pendente sem plano ou prioritário, abre-o
+  const handleKpiCardClick = (filterType: 'all' | 'pending' | 'resolved' | 'without-plans') => {
+    if (filterType === 'all' || filterType === 'pending' || filterType === 'without-plans') {
+      // Prioridade: primeiro caso sem plano de ação, ou o caso crítico mais recente
+      const caseWithoutPlan = npsCases.find(
+        (c) => c.status !== 'Resolvido' && (plansCountMap[c.id] || 0) === 0,
+      )
+      const firstActiveCase = npsCases.find((c) => c.status !== 'Resolvido') || npsCases[0]
+      const targetCase = caseWithoutPlan || firstActiveCase
+
+      if (targetCase) {
+        handleOpenActionPlan(targetCase)
+        return
+      }
+    }
     navigate('/nps-casos')
   }
 
@@ -587,7 +634,7 @@ export default function Index() {
           </div>
           <NpsWeeklyCards
             stats={npsStats}
-            canEdit={canEditWeekly}
+            canEdit={canManageNps}
             onSegmentClick={handleNpsSegmentClick}
             onStatsUpdated={loadNpsDashboardData}
           />
@@ -595,12 +642,39 @@ export default function Index() {
 
         {/* Indicadores NPS */}
         <div className="space-y-2">
-          <span className="text-xs uppercase font-semibold text-muted-foreground tracking-wider">
-            Indicadores de Tratamento de Casos
-          </span>
-          <NpsKpiCards summary={npsSummary} onKpiClick={() => navigate('/nps-casos')} />
+          <div className="flex items-center justify-between">
+            <span className="text-xs uppercase font-semibold text-muted-foreground tracking-wider">
+              Indicadores de Tratamento de Casos
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Clique em casos críticos para abrir direto o plano de ação
+            </span>
+          </div>
+          <NpsKpiCards summary={npsSummary} onKpiClick={handleKpiCardClick} />
+        </div>
+
+        {/* Painel de Detalhe dos Casos Críticos no Dashboard */}
+        <div className="space-y-2">
+          <NpsDetailPanel
+            cases={npsCases}
+            plansCountMap={plansCountMap}
+            onOpenActionPlan={handleOpenActionPlan}
+            onViewAllInNpsModule={() => navigate('/nps-casos')}
+          />
         </div>
       </div>
+
+      {/* Diálogo de Planos de Ação (reaproveitado de /nps-casos) */}
+      <NpsActionPlanDialog
+        npsCase={selectedCaseForPlans}
+        open={isPlanDialogOpen}
+        onOpenChange={(open) => {
+          setIsPlanDialogOpen(open)
+          if (!open) setSelectedCaseForPlans(null)
+        }}
+        canManage={canManageNps}
+        onCaseUpdated={loadNpsDashboardData}
+      />
     </div>
   )
 }

@@ -19,6 +19,7 @@ interface NpsCaseTableProps {
   onOpenPlans: (npsCase: NpsCase) => void
   onEditCase?: (npsCase: NpsCase) => void
   onDeleteCase?: (npsCase: NpsCase) => void
+  plansByCaseId?: Record<string, number>
 }
 
 export function NpsCaseTable({
@@ -27,6 +28,7 @@ export function NpsCaseTable({
   onOpenPlans,
   onEditCase,
   onDeleteCase,
+  plansByCaseId = {},
 }: NpsCaseTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -116,18 +118,33 @@ export function NpsCaseTable({
                   </TableCell>
 
                   <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={`text-xs ${
-                        c.status === 'Resolvido'
-                          ? 'border-emerald-500/50 text-emerald-400 bg-emerald-500/10'
-                          : c.status === 'Em Tratamento'
-                            ? 'border-amber-500/50 text-amber-400 bg-amber-500/10'
-                            : 'border-destructive/50 text-destructive bg-destructive/10'
-                      }`}
-                    >
-                      {c.status}
-                    </Badge>
+                    <div className="flex flex-col gap-1 items-start">
+                      <Badge
+                        variant="outline"
+                        className={`text-xs ${
+                          c.status === 'Resolvido'
+                            ? 'border-emerald-500/50 text-emerald-400 bg-emerald-500/10'
+                            : c.status === 'Em Tratamento'
+                              ? 'border-amber-500/50 text-amber-400 bg-amber-500/10'
+                              : 'border-destructive/50 text-destructive bg-destructive/10'
+                        }`}
+                      >
+                        {c.status}
+                      </Badge>
+                      {c.status !== 'Resolvido' && (plansByCaseId[c.id] ?? 0) === 0 && (
+                        <Badge
+                          variant="destructive"
+                          className="text-[10px] h-4 px-1.5 font-bold animate-pulse bg-destructive/90 text-destructive-foreground hover:bg-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onOpenPlans(c)
+                          }}
+                          title="Obrigatório plano de ação para casos críticos!"
+                        >
+                          Sem plano de ação
+                        </Badge>
+                      )}
+                    </div>
                   </TableCell>
 
                   <TableCell>
@@ -143,14 +160,20 @@ export function NpsCaseTable({
                   <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-1">
                       <Button
-                        variant="outline"
+                        variant={(plansByCaseId[c.id] ?? 0) === 0 ? 'default' : 'outline'}
                         size="sm"
-                        className="h-8 gap-1 border-primary/40 text-primary hover:bg-primary/10"
+                        className={`h-8 gap-1 ${
+                          (plansByCaseId[c.id] ?? 0) === 0
+                            ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm animate-pulse'
+                            : 'border-primary/40 text-primary hover:bg-primary/10'
+                        }`}
                         onClick={() => onOpenPlans(c)}
                         title="Abrir Planos de Ação e Análise IA"
                       >
                         <Target className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Plano</span>
+                        <span className="hidden sm:inline">
+                          {(plansByCaseId[c.id] ?? 0) === 0 ? 'Criar Plano' : 'Plano'}
+                        </span>
                       </Button>
 
                       {canManage && onEditCase && (

@@ -4,7 +4,8 @@ import type { NpsKpiSummary } from '@/types/nps'
 
 interface NpsKpiCardsProps {
   summary: NpsKpiSummary
-  onKpiClick?: (filterType: 'all' | 'pending' | 'resolved') => void
+  onKpiClick?: (filterType: 'all' | 'pending' | 'resolved' | 'without-plans') => void
+  onOpenCriticalCase?: () => void
 }
 
 export function NpsKpiCards({ summary, onKpiClick }: NpsKpiCardsProps) {
@@ -13,8 +14,13 @@ export function NpsKpiCards({ summary, onKpiClick }: NpsKpiCardsProps) {
       {/* 1. Casos Críticos & Detratores */}
       <Card
         onClick={() => onKpiClick?.('all')}
-        className="cursor-pointer border-border/50 bg-card/40 backdrop-blur-sm hover:border-primary/50 transition-all group"
+        className="cursor-pointer border-border/50 bg-card/40 backdrop-blur-sm hover:border-primary/50 transition-all group relative overflow-hidden"
       >
+        {typeof summary.withoutPlansCount === 'number' && summary.withoutPlansCount > 0 && (
+          <div className="absolute top-0 right-0 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-bl">
+            {summary.withoutPlansCount} sem plano
+          </div>
+        )}
         <CardContent className="p-5 flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">

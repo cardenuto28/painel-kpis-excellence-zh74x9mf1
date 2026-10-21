@@ -50,4 +50,5 @@ export interface NpsKpiSummary {
   resolvedCount: number
   resolutionRate: number // %
   avgResolutionDays: number
+  withoutPlansCount?: number // Casos críticos sem plano de ação
 }
